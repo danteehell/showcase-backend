@@ -1,11 +1,12 @@
 from django.contrib import admin, messages
 from django.utils import timezone
+from unfold.admin import ModelAdmin, TabularInline
 
 from .models import Task, TaskCategory, TaskSkill, TaskAssignment
 
 
 @admin.register(TaskCategory)
-class TaskCategoryAdmin(admin.ModelAdmin):
+class TaskCategoryAdmin(ModelAdmin):
     list_display = ("name", "slug", "tasks_count")
     search_fields = ("name", "slug")
     list_display_links = ("name",)
@@ -20,13 +21,13 @@ class TaskCategoryAdmin(admin.ModelAdmin):
         return obj.tasks.count()
 
 
-class SkillInline(admin.TabularInline):
+class SkillInline(TabularInline):
     model = TaskSkill
     extra = 1
     fields = ("skill", "level_required")
 
 
-class AssignmentInline(admin.TabularInline):
+class AssignmentInline(TabularInline):
     model = TaskAssignment
     extra = 0
     can_delete = False
@@ -39,7 +40,7 @@ class AssignmentInline(admin.TabularInline):
 
 
 @admin.register(Task)
-class TaskAdmin(admin.ModelAdmin):
+class TaskAdmin(ModelAdmin):
     list_display = (
         "id", "title", "project", "curator", "category",
         "difficulty", "points", "status", "filled_display", "deadline",
@@ -137,7 +138,7 @@ class TaskAdmin(admin.ModelAdmin):
 
 
 @admin.register(TaskSkill)
-class TaskSkillAdmin(admin.ModelAdmin):
+class TaskSkillAdmin(ModelAdmin):
     list_display = ("id", "task", "skill", "level_required")
     list_filter = ("level_required",)
     search_fields = ("skill", "task__title")
@@ -146,7 +147,7 @@ class TaskSkillAdmin(admin.ModelAdmin):
 
 
 @admin.register(TaskAssignment)
-class TaskAssignmentAdmin(admin.ModelAdmin):
+class TaskAssignmentAdmin(ModelAdmin):
     list_display = (
         "id", "task", "student", "status",
         "revision_count", "revisions_left_display", "taken_at",

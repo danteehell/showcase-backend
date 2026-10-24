@@ -1,23 +1,24 @@
 from django.contrib import admin
+from unfold.admin import ModelAdmin, TabularInline
 from .models import *
 
 admin.site.site_header = "Управление проектами"
 
-class ProjectListItemInline(admin.TabularInline):
+class ProjectListItemInline(TabularInline):
     model = ProjectListItem
     extra = 1
     autocomplete_fields = ("project",)
     fields = ("type", "position", "text")
     ordering = ("position",)
 
-class FilterOptionInline(admin.TabularInline):
+class FilterOptionInline(TabularInline):
     model = FilterOption
     extra = 1
     fields = ("name",)
     show_change_link = True
 
 
-class PartnerAdmin(admin.ModelAdmin):
+class PartnerAdmin(ModelAdmin):
     list_display = ("name", "website", "email", "phone", "internship", "projects_count")
     search_fields = ("name", "email", "phone")
     list_filter = ("internship",)
@@ -31,7 +32,7 @@ class PartnerAdmin(admin.ModelAdmin):
         return Project.objects.filter(partner=obj).count()
     projects_count.short_description = "Проектов"
 
-class CuratorAdmin(admin.ModelAdmin):
+class CuratorAdmin(ModelAdmin):
     list_display = ("first_name", "last_name", "email", "projects_count")
     search_fields = ("first_name", "last_name", "email")
     ordering = ("last_name", "first_name")
@@ -39,7 +40,7 @@ class CuratorAdmin(admin.ModelAdmin):
         return Project.objects.filter(curator=obj).count()
     projects_count.short_description = "Проектов"
 
-class FilterCategoryAdmin(admin.ModelAdmin):
+class FilterCategoryAdmin(ModelAdmin):
     list_display = ("name", "category_type", "options_count")
     search_fields = ("name",)
     list_filter = ("category_type",)
@@ -49,7 +50,7 @@ class FilterCategoryAdmin(admin.ModelAdmin):
         return obj.options.count()
     options_count.short_description = "Опций"
 
-class FilterOptionAdmin(admin.ModelAdmin):
+class FilterOptionAdmin(ModelAdmin):
     list_display = ("name", "category", "projects_count")
     search_fields = ("name", "category__name")
     list_filter = ("category",)
@@ -65,19 +66,19 @@ class FilterOptionAdmin(admin.ModelAdmin):
         )
     projects_count.short_description = "Проектов"
 
-class ScheduleItemAdmin(admin.ModelAdmin):
+class ScheduleItemAdmin(ModelAdmin):
     list_display = ("day_of_week", "start_time", "end_time", "note")
     list_filter = ("day_of_week",)
     search_fields = ("note",)
     ordering = ("day_of_week", "start_time")
     raw_id_fields = ()
 
-class CourseYearAdmin(admin.ModelAdmin):
+class CourseYearAdmin(ModelAdmin):
     list_display = ("year",)
     search_fields = ("year",)
     ordering = ("year",)
 
-class ProjectAdmin(admin.ModelAdmin):
+class ProjectAdmin(ModelAdmin):
     list_display = (
         "id",
         "title",
