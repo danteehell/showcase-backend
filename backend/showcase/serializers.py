@@ -47,7 +47,7 @@ class FilterCategorySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = FilterCategory
-        fields = ['id', 'name', 'category_type', 'options']
+        fields = ['id', 'name', 'options'] 
 
 class PartnerSerializer(serializers.ModelSerializer):
     class Meta:

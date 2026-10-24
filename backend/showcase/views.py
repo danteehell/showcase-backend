@@ -87,7 +87,7 @@ class FiltersViewSet(viewsets.ReadOnlyModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        data = {cat['category_type']: cat for cat in serializer.data}
+        data = {cat['name']: cat for cat in serializer.data}
         return Response(data)
 
 
