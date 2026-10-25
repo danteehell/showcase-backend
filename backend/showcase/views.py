@@ -8,6 +8,7 @@ from .serializers import *
 from users.permissions import IsAdminOrCurator, IsStudent
 
 class ProjectListAPI(views.APIView):
+    permission_classes = [AllowAny]
     def get(self, request, format=None):
         projects = Project.objects.all()
 
@@ -81,6 +82,7 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
 
 class FiltersViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [AllowAny]
     queryset = FilterCategory.objects.all().prefetch_related('options')
     serializer_class = FilterCategorySerializer
 
@@ -92,6 +94,7 @@ class FiltersViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class PartnerViewSet(viewsets.ReadOnlyModelViewSet):
+    permission_classes = [AllowAny]
     queryset = Partner.objects.all()
     serializer_class = PartnerSerializer
 

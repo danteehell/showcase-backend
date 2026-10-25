@@ -17,7 +17,7 @@ class User(AbstractUser):
         choices=Roles.choices,
         default=Roles.STUDENT,
     )
-    
+    keycloak_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
     def is_admin(self):
         return self.role == self.Roles.ADMIN or self.is_superuser
 

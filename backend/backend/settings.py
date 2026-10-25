@@ -29,7 +29,7 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = ['showcase-kzci.onrender.com', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -54,6 +54,9 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'EXCEPTION_HANDLER': 'tasks.exceptions.api_exception_handler',
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'users.authentication.KeycloakAuthentication',
+    ),
 }
 
 MIDDLEWARE = [
@@ -236,4 +239,8 @@ UNFOLD = {
     },
 }
 
-
+OIDC_AUTH = {
+    'OIDC_ENDPOINT': os.getenv('KEYCLOAK_REALM_URL'),
+    'OIDC_AUDIENCES': ['account'],
+    'OIDC_ALLOW_INSECURE': True,
+}
