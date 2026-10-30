@@ -115,3 +115,16 @@ class ProjectListItem(models.Model):
 
     def __str__(self):
         return f"{self.project.title} - {self.get_type_display()} ({self.position})"
+
+class ProjectEnrollment(models.Model):
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='enrollments')
+    student = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='project_enrollments')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Заявка на проект"
+        verbose_name_plural = "Заявки на проекты"
+        unique_together = ('project', 'student')
+
+    def __str__(self):
+        return f"{self.student} -> {self.project}"

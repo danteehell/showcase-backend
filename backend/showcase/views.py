@@ -1,6 +1,9 @@
 from rest_framework import views, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny
+from rest_framework.decorators import action
+from rest_framework import status
+from django.db import transaction
 from django.db.models import Count
 
 from .models import *
@@ -79,6 +82,35 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update', 'destroy']:
             return [IsAdminOrCurator()]
         return [AllowAny()]
+    
+    @action(detail=True, methods=['post'], permission_classes=[IsStudent])
+    # TODO: затестить
+    def enroll(self, request, pk=None):
+        with transaction.atomic():
+            # Блокируем проект, чтобы два студента не заняли последнее место
+            project = Project.objects.select_for_update().filter(pk=pk).first()
+            
+            if not project:
+                return Response({"error": "Проект не найден"}, status=status.HTTP_404_NOT_FOUND)
+                
+            if project.spots_remaining <= 0:
+                return Response({"error": "Свободных мест больше нет"}, status=status.HTTP_400_BAD_REQUEST)
+                
+            if ProjectEnrollment.objects.filter(project=project, student=request.user).exists():
+                return Response({"error": "Вы уже записаны на этот проект"}, status=status.HTTP_400_BAD_REQUEST)
+            ProjectEnrollment.objects.create(project=project, student=request.user)
+            project.spots_remaining -= 1
+            project.save()
+            
+        return Response({"status": "Успех", "message": "Вы записались на проект"})
+
+    # Проекты студента
+    @action(detail=False, methods=['get'], permission_classes=[IsStudent])
+    def my_projects(self, request):
+        enrollments = ProjectEnrollment.objects.filter(student=request.user).select_related('project')
+        projects = [e.project for e in enrollments]
+        serializer = self.get_serializer(projects, many=True)
+        return Response(serializer.data)
 
 
 class FiltersViewSet(viewsets.ReadOnlyModelViewSet):

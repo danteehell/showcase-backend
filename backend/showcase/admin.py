@@ -1,14 +1,18 @@
 from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import format_html
 from unfold.admin import ModelAdmin, TabularInline
 from .models import *
 
 admin.site.site_header = "Управление проектами"
+
 
 class ProjectListItemInline(TabularInline):
     model = ProjectListItem
     extra = 1
     fields = ("type", "position", "text")
     ordering = ("position",)
+
 
 class FilterOptionInline(TabularInline):
     model = FilterOption
@@ -31,8 +35,6 @@ class PartnerAdmin(ModelAdmin):
     @admin.display(description="Проектов")
     def projects_count(self, obj):
         return Project.objects.filter(partner=obj).count()
-
-
 
 
 class FilterCategoryAdmin(ModelAdmin):
@@ -109,6 +111,8 @@ class ProjectAdmin(ModelAdmin):
     )
     ordering = ("-created_at",)
     inlines = [ProjectListItemInline]
+    readonly_fields = ("enrolled_students_list",)
+    
     fieldsets = (
         ("Основная информация", {
             "fields": (
@@ -139,7 +143,29 @@ class ProjectAdmin(ModelAdmin):
                 "is_active",
             )
         }),
+        ("Участники проекта", {
+            "fields": ("enrolled_students_list",),
+            "classes": ("collapse",)
+        }),
     )
+
+    @admin.display(description="Список записавшихся")
+    def enrolled_students_list(self, obj):
+        enrollments = obj.enrollments.select_related('student').all()
+        
+        if not enrollments:
+            return "Пока никто не записался"
+
+        html = '<ul style="margin: 0; padding-left: 20px;">'
+        for enrollment in enrollments:
+            student = enrollment.student
+            url = reverse('admin:users_user_change', args=[student.id])
+            name = student.get_full_name() or student.username
+            html += f'<li style="margin-bottom: 5px;"><a href="{url}" style="color: #677BFD; font-weight: bold;">{name}</a> ({student.email})</li>'
+        
+        html += '</ul>'
+        return format_html(html)
+
 
 admin.site.register(Partner, PartnerAdmin)
 admin.site.register(FilterCategory, FilterCategoryAdmin)

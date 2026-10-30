@@ -41,9 +41,20 @@ class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
 # Показываем пользователей в админки, разделяя их по ролям на сайте
 @admin.register(StudentProxy)
 class StudentAdmin(CustomUserAdmin):
+    list_display = ('username', 'get_full_name', 'course', 'specialty', 'email')
+    list_filter = ('course', 'specialty', 'is_active')
+
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Персональная информация', {'fields': ('first_name', 'last_name', 'middle_name', 'email')}),
+        ('Учеба', {'fields': ('course', 'specialty')}),
+        ('Права', {'fields': ('is_active', 'is_staff', 'role', 'keycloak_id')}),
+    )
+
     def get_queryset(self, request):
         return super().get_queryset(request).filter(role='student')
-
+# TODO: Закастомить отображение для остальных ролей как для студента
+# TODO: В админке некрасиво отображается ФИО(Get full name), поправить на "ФИО" или еще чет
 @admin.register(CuratorProxy)
 class CuratorAdmin(CustomUserAdmin):
     def get_queryset(self, request):

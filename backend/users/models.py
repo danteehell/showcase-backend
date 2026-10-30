@@ -15,6 +15,8 @@ class User(AbstractUser):
         CURATOR = 'curator', 'Куратор'
         STUDENT = 'student', 'Студент'
 
+    middle_name = models.CharField(max_length=150, null=True, blank=True, verbose_name="Отчество")
+
     role = models.CharField(
         max_length=20,
         choices=Roles.choices,
@@ -29,7 +31,20 @@ class User(AbstractUser):
         related_name="students",
         verbose_name="Направление подготовки"
     )
+    course = models.PositiveSmallIntegerField(
+        verbose_name='Курс',
+        null=True, blank=True,
+        choices=[(i, f"{i} курс") for i in range(1, 5)]
+    )
     keycloak_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
+    
+    def get_full_name(self):
+        if self.last_name and self.first_name and self.middle_name:
+            return f"{self.last_name} {self.first_name} {self.middle_name}"
+        elif self.last_name and self.first_name:
+            return f"{self.last_name} {self.first_name}"
+        elif self.first_name:
+            return self.first_name
     def is_admin(self):
         return self.role == self.Roles.ADMIN or self.is_superuser
 
