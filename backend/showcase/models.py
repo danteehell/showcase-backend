@@ -15,25 +15,6 @@ class Partner(models.Model):
     def __str__(self):
         return self.name
 
-class Curator(models.Model):
-    first_name = models.CharField(max_length=100, verbose_name="Имя")
-    last_name = models.CharField(max_length=100, verbose_name="Фамилия")
-    patronymic = models.CharField(max_length=200, verbose_name="Отчество", null=True, blank=True)
-    email = models.EmailField(blank=True, null=True, verbose_name="Email")
-
-    class Meta:
-        verbose_name = "Куратор"
-        verbose_name_plural = "Кураторы"
-
-    def __str__(self):
-        return f"{self.first_name} {self.last_name}"
-        
-    def full_name(self):
-        if self.patronymic:
-            return f'{self.last_name} {self.first_name} {self.patronymic}'
-        else:
-            return f'{self.last_name} {self.first_name}'
-
 class FilterCategory(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название категории")
 
@@ -77,15 +58,6 @@ class ScheduleItem(models.Model):
     def __str__(self):
         return f"{self.get_day_of_week_display()} {self.start_time.strftime('%H:%M')} - {self.end_time.strftime('%H:%M') if self.end_time else ''}"
 
-class CourseYear(models.Model):
-    year = models.PositiveSmallIntegerField(verbose_name="Курс")
-
-    class Meta:
-        verbose_name = "Курс студента"
-        verbose_name_plural = "Курсы студентов"
-
-    def __str__(self):
-        return str(self.year)
 
 class Project(models.Model):
     title = models.CharField(max_length=300, verbose_name="Название проекта")

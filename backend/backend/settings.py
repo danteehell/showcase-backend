@@ -198,6 +198,17 @@ UNFOLD = {
                         },
                     ],
                 },
+                {
+                    "title": "Пользователи",
+                    "separator": True,
+                    "items": [
+                        {
+                            "title": "Все пользователи",
+                            "icon": "group",
+                            "link": reverse_lazy("admin:users_user_changelist"),
+                        },
+                    ],
+                },
             ],
     },
     "COLORS": {

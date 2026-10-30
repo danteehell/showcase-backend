@@ -33,14 +33,6 @@ class PartnerAdmin(ModelAdmin):
         return Project.objects.filter(partner=obj).count()
 
 
-class CuratorAdmin(ModelAdmin):
-    list_display = ("first_name", "last_name", "email", "projects_count")
-    search_fields = ("first_name", "last_name", "email")
-    ordering = ("last_name", "first_name")
-    
-    @admin.display(description="Проектов")
-    def projects_count(self, obj):
-        return Project.objects.filter(curator=obj).count()
 
 
 class FilterCategoryAdmin(ModelAdmin):
@@ -150,9 +142,7 @@ class ProjectAdmin(ModelAdmin):
     )
 
 admin.site.register(Partner, PartnerAdmin)
-admin.site.register(Curator, CuratorAdmin)
 admin.site.register(FilterCategory, FilterCategoryAdmin)
 admin.site.register(FilterOption, FilterOptionAdmin)
 admin.site.register(ScheduleItem, ScheduleItemAdmin)
-admin.site.register(CourseYear, CourseYearAdmin)
 admin.site.register(Project, ProjectAdmin)

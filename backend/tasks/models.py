@@ -65,10 +65,12 @@ class Task(models.Model):
         verbose_name='Проект'
     )
     curator = models.ForeignKey(
-        'showcase.Curator',
+        settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
+        limit_choices_to={'role': 'curator'}, 
+        related_name='curated_tasks',
         verbose_name="Куратор"
     )
     category = models.ForeignKey(
@@ -132,10 +134,12 @@ class Task(models.Model):
         verbose_name='Макс. курс',
         help_text='Пусто — без верхней границы',
     )
-    required_specialty = models.CharField(
-        max_length=100, blank=True,
-        verbose_name='Требуемая специальность',
-        help_text='Пусто — любая специальность',
+    required_specialty = models.ForeignKey(
+        'showcase.FilterOption',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        limit_choices_to={'category__name': 'Специальность'},
+        verbose_name='Требуемая специальность'
     )
     removed_at = models.DateTimeField(
         blank=True,
