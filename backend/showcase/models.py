@@ -1,5 +1,6 @@
 from django.db import models
 from backend import settings
+from users.models import Specialty 
 
 class Partner(models.Model):
     name = models.CharField(max_length=200, verbose_name="Партнёр")
@@ -63,7 +64,7 @@ class Project(models.Model):
     title = models.CharField(max_length=300, verbose_name="Название проекта")
     
     theme = models.ForeignKey(FilterOption, on_delete=models.SET_NULL, null=True, blank=True, related_name="projects_as_theme", limit_choices_to={"category__name": "Тематика"}, verbose_name="Тематика")
-    specialties = models.ManyToManyField(FilterOption, blank=True, related_name="projects_as_specialty", limit_choices_to={"category__name": "Специальность"}, verbose_name="Специальности")
+    specialties = models.ManyToManyField(Specialty, blank=True, related_name="projects", verbose_name="Направления подготовки")
     campus = models.ForeignKey(FilterOption, on_delete=models.SET_NULL, null=True, blank=True, related_name="projects_as_campus", limit_choices_to={"category__name": "Корпус"}, verbose_name="Корпус")
     courses = models.ManyToManyField(FilterOption, blank=True, related_name="projects_as_course", limit_choices_to={"category__name": "Курс"}, verbose_name="Курсы студентов")
     difficulty = models.ForeignKey(FilterOption, on_delete=models.SET_NULL, null=True, blank=True, related_name="projects_as_difficulty", limit_choices_to={"category__name": "Сложность"}, verbose_name="Сложность")

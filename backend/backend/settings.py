@@ -110,10 +110,7 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 AUTH_USER_MODEL = 'users.User'
-AUTHENTICATION_BACKENDS = [
-    'users.backends.EmailOrUsernameBackend', # Наш кастомный бэкенд
-    'django.contrib.auth.backends.ModelBackend', # Оставляем для админки
-]
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -202,14 +199,24 @@ UNFOLD = {
                         },
                     ],
                 },
-                {
+                                {
                     "title": "Пользователи",
                     "separator": True,
                     "items": [
                         {
-                            "title": "Все пользователи",
-                            "icon": "group",
-                            "link": reverse_lazy("admin:users_user_changelist"),
+                            "title": "Студенты",
+                            "icon": "school", 
+                            "link": reverse_lazy("admin:users_studentproxy_changelist"),
+                        },
+                        {
+                            "title": "Кураторы",
+                            "icon": "person", 
+                            "link": reverse_lazy("admin:users_curatorproxy_changelist"),
+                        },
+                        {
+                            "title": "Администраторы",
+                            "icon": "admin_panel_settings",
+                            "link": reverse_lazy("admin:users_adminproxy_changelist"),
                         },
                     ],
                 },

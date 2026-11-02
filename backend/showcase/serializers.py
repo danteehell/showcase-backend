@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import *
+from users.models import Specialty
 
 
 class ProjectListItemSerializer(serializers.ModelSerializer):
@@ -8,17 +9,18 @@ class ProjectListItemSerializer(serializers.ModelSerializer):
         model = ProjectListItem
         fields = ['type', 'position', 'text']
 
+
 class ProjectSerializer(serializers.ModelSerializer):
     curator = serializers.SerializerMethodField()
 
     theme = serializers.CharField(source='theme.name', default=None)
+    # Здесь мы используем Specialty (новую модель)
     specialties = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
     day_of_week = serializers.CharField(source='shedule.day_of_week', default=None)
     campus = serializers.CharField(source='campus.name', default=None)
     courses = serializers.SlugRelatedField(many=True, read_only=True, slug_field='name')
     difficulty = serializers.CharField(source='difficulty.name', default=None)
     partner = serializers.CharField(source='partner.name', default=None)
-    
     
     list_items = ProjectListItemSerializer(many=True, read_only=True)
 
@@ -30,17 +32,18 @@ class ProjectSerializer(serializers.ModelSerializer):
             'short_description', 'long_description', 'is_active', 'created_at', 'updated_at',
             'list_items' 
         ]
+        
     def get_curator(self, obj):
         if obj.curator:
-            if obj.curator.first_name or obj.curator.last_name:
-                return f"{obj.curator.last_name} {obj.curator.first_name}".strip()
-            return obj.curator.username
+            return obj.curator.get_full_name()
         return None
+
 
 class FilterOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = FilterOption
         fields = ['id', 'name']
+
 
 class FilterCategorySerializer(serializers.ModelSerializer):
     options = FilterOptionSerializer(many=True, read_only=True)
@@ -48,6 +51,7 @@ class FilterCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FilterCategory
         fields = ['id', 'name', 'options'] 
+
 
 class PartnerSerializer(serializers.ModelSerializer):
     class Meta:

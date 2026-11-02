@@ -4,11 +4,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 from rest_framework import status
 from django.db import transaction
-from django.db.models import Count
 
 from .models import *
 from .serializers import *
 from users.permissions import IsAdminOrCurator, IsStudent
+from users.models import Specialty
 
 class ProjectListAPI(views.APIView):
     permission_classes = [AllowAny]
@@ -21,23 +21,51 @@ class ProjectListAPI(views.APIView):
 
         theme_ids = request.GET.getlist('theme')
         if theme_ids:
-            theme_ids = [int(t) for t in theme_ids]
-            projects = projects.filter(theme_id__in=theme_ids)
+            try:
+                theme_ids = [int(t) for t in theme_ids if t]
+                projects = projects.filter(theme_id__in=theme_ids)
+            except ValueError:
+                pass
+
+        specialty_ids = request.GET.getlist('specialty')
+        if specialty_ids:
+            try:
+                specialty_ids = [int(s) for s in specialty_ids if s]
+                projects = projects.filter(specialties__id__in=specialty_ids).distinct()
+            except ValueError:
+                pass
+
+        course_ids = request.GET.getlist('course')
+        if course_ids:
+            try:
+                course_ids = [int(c) for c in course_ids if c]
+                projects = projects.filter(courses__id__in=course_ids).distinct()
+            except ValueError:
+                pass
 
         difficulty_ids = request.GET.getlist('difficulty')
         if difficulty_ids:
-            difficulty_ids = [int(d) for d in difficulty_ids]
-            projects = projects.filter(difficulty_id__in=difficulty_ids)
+            try:
+                difficulty_ids = [int(d) for d in difficulty_ids if d]
+                projects = projects.filter(difficulty_id__in=difficulty_ids)
+            except ValueError:
+                pass
 
         partner_ids = request.GET.getlist('partner')
         if partner_ids:
-            partner_ids = [int(p) for p in partner_ids]
-            projects = projects.filter(partner_id__in=partner_ids)
+            try:
+                partner_ids = [int(p) for p in partner_ids if p]
+                projects = projects.filter(partner_id__in=partner_ids)
+            except ValueError:
+                pass
 
         campus_ids = request.GET.getlist('campus')
         if campus_ids:
-            campus_ids = [int(c) for c in campus_ids]
-            projects = projects.filter(campus__id__in=campus_ids)
+            try:
+                campus_ids = [int(c) for c in campus_ids if c]
+                projects = projects.filter(campus__id__in=campus_ids)
+            except ValueError:
+                pass
 
         internship = request.GET.get('internship')
         if internship is not None:
@@ -84,7 +112,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
         return [AllowAny()]
     
     @action(detail=True, methods=['post'], permission_classes=[IsStudent])
-    # TODO: затестить
     def enroll(self, request, pk=None):
         with transaction.atomic():
             project = Project.objects.select_for_update().filter(pk=pk).first()
@@ -97,13 +124,13 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 
             if ProjectEnrollment.objects.filter(project=project, student=request.user).exists():
                 return Response({"error": "Вы уже записаны на этот проект"}, status=status.HTTP_400_BAD_REQUEST)
+                
             ProjectEnrollment.objects.create(project=project, student=request.user)
             project.spots_remaining -= 1
             project.save()
             
         return Response({"status": "Успех", "message": "Вы записались на проект"})
 
-    # Проекты студента
     @action(detail=False, methods=['get'], permission_classes=[IsStudent])
     def my_projects(self, request):
         enrollments = ProjectEnrollment.objects.filter(student=request.user).select_related('project')
@@ -121,6 +148,17 @@ class FiltersViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         data = {cat['name']: cat for cat in serializer.data}
+
+        specialties = Specialty.objects.all().values('id', 'code', 'name')
+        data['Специальность'] = {
+            'id': 999, 
+            'name': 'Специальность',
+            'options': [
+                {'id': s['id'], 'name': f"{s['code']} - {s['name']}"} 
+                for s in specialties
+            ]
+        }
+        
         return Response(data)
 
 
@@ -133,4 +171,3 @@ class PartnerViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response({"data": serializer.data})
-    

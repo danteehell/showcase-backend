@@ -57,9 +57,9 @@ class FilterOptionAdmin(ModelAdmin):
     
     @admin.display(description="Проектов")
     def projects_count(self, obj):
+        # Убрали projects_as_specialty, так как специальности теперь в другой модели
         return (
             obj.projects_as_theme.count() +
-            obj.projects_as_specialty.count() +
             obj.projects_as_campus.count() +
             obj.projects_as_course.count() +
             obj.projects_as_difficulty.count()
@@ -73,18 +73,13 @@ class ScheduleItemAdmin(ModelAdmin):
     ordering = ("day_of_week", "start_time")
 
 
-class CourseYearAdmin(ModelAdmin):
-    list_display = ("year",)
-    search_fields = ("year",)
-    ordering = ("year",)
-
-
 class ProjectAdmin(ModelAdmin):
     list_display = (
         "id",
         "title",
         "partner",
         "curator",
+        "display_specialties", # <--- Добавили колонку специальностей
         "difficulty",
         "spots_remaining",
         "internship",
@@ -97,6 +92,7 @@ class ProjectAdmin(ModelAdmin):
         "campus",
         "partner",
         "curator",
+        "specialties", # <--- Добавили фильтр по специальностям
     )
     search_fields = (
         "title",
@@ -149,6 +145,10 @@ class ProjectAdmin(ModelAdmin):
         }),
     )
 
+    @admin.display(description="Специальности")
+    def display_specialties(self, obj):
+        return ", ".join([s.code for s in obj.specialties.all()])
+
     @admin.display(description="Список записавшихся")
     def enrolled_students_list(self, obj):
         enrollments = obj.enrollments.select_related('student').all()
@@ -160,7 +160,8 @@ class ProjectAdmin(ModelAdmin):
         for enrollment in enrollments:
             student = enrollment.student
             url = reverse('admin:users_user_change', args=[student.id])
-            name = student.get_full_name() or student.username
+            # Исправлено: убрали student.username, так как его больше нет
+            name = student.get_full_name() or student.email
             html += f'<li style="margin-bottom: 5px;"><a href="{url}" style="color: #677BFD; font-weight: bold;">{name}</a> ({student.email})</li>'
         
         html += '</ul>'

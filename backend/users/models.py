@@ -1,28 +1,41 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.conf import settings
-from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db import models
-from django.db.models import Q
-from django.utils import timezone
 
 
-# TODO: Надо продумать данные для каждой роли
-# Например у студента будет специальность, у куратора кафедра итд.
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, password=None, **extra_fields):
+        if not email:
+            raise ValueError('Email обязателен')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_superuser(self, email, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        return self.create_user(email, password, **extra_fields)
+
+
 class User(AbstractUser):
+    username = None
+    email = models.EmailField(unique=True, verbose_name="Логин")
     
     class Roles(models.TextChoices):
         ADMIN = 'admin', 'Администратор'
         CURATOR = 'curator', 'Куратор'
         STUDENT = 'student', 'Студент'
+    #TODO: Продумать, студент может быть куратором вроде
+    role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.STUDENT, verbose_name="Роль")
+    middle_name = models.CharField(max_length=150, blank=True, verbose_name="Отчество")
 
-    middle_name = models.CharField(max_length=150, null=True, blank=True, verbose_name="Отчество")
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = [] 
 
-    role = models.CharField(
-        max_length=20,
-        choices=Roles.choices,
-        default=Roles.STUDENT,
-    )
+    objects = CustomUserManager() 
+
     def get_full_name(self):
         if self.last_name and self.first_name and self.middle_name:
             return f"{self.last_name} {self.first_name} {self.middle_name}"
@@ -30,6 +43,10 @@ class User(AbstractUser):
             return f"{self.last_name} {self.first_name}"
         elif self.first_name:
             return self.first_name
+        elif self.email:
+            return self.email
+        return str(self.id)
+
     def is_admin(self):
         return self.role == self.Roles.ADMIN or self.is_superuser
 
@@ -40,19 +57,74 @@ class User(AbstractUser):
         return self.role == self.Roles.STUDENT
     
     def __str__(self):
-        if self.first_name or self.last_name:
-            return f"{self.last_name} {self.first_name}".strip()
-        return self.username
-    
-class StudentProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
-    course = models.PositiveSmallIntegerField(verbose_name="Курс")
-    specialty = models.ForeignKey('showcase.FilterOption', on_delete=models.SET_NULL, null=True, verbose_name="Специальность")
+        return self.get_full_name()
 
-# ASK: Нам нужно знать какие данные есть в лк у преподавателей.
+
+class Specialty(models.Model):
+    code = models.CharField(max_length=20, unique=True, verbose_name="Код направления")
+    name = models.CharField(max_length=255, verbose_name="Название направления")
+
+    class Meta:
+        verbose_name = "Направление подготовки"
+        verbose_name_plural = "Направления подготовки"
+        ordering = ['code']
+
+    def __str__(self):
+        return f"{self.code} - {self.name}"
+
+
+class Department(models.Model):
+    name = models.CharField(max_length=255, unique=True, verbose_name="Название кафедры")
+    
+    class Meta:
+        verbose_name = "Кафедра"
+        verbose_name_plural = "Кафедры"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class StudentProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile', verbose_name="Пользователь")
+    
+    course = models.PositiveSmallIntegerField(
+        verbose_name="Курс",
+        choices=[(i, f"{i} курс") for i in range(1, 7)]
+    )
+    
+    specialty = models.ForeignKey(
+        Specialty,
+        on_delete=models.SET_NULL, 
+        null=True, blank=True, 
+        verbose_name="Направление подготовки"
+    )
+
+    class Meta:
+        verbose_name = "Профиль студента"
+        verbose_name_plural = "Профили студентов"
+
+    def __str__(self):
+        return f"Профиль: {self.user.get_full_name()}"
+
+
 class CuratorProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='curator_profile')
-    department = models.CharField(max_length=255, verbose_name="Кафедра")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='curator_profile', verbose_name="Пользователь")
+    
+    department = models.ForeignKey(
+        Department,
+        on_delete=models.SET_NULL, 
+        null=True, blank=True,
+        verbose_name="Кафедра"
+    )
+
+    class Meta:
+        verbose_name = "Профиль куратора"
+        verbose_name_plural = "Профили кураторов"
+
+    def __str__(self):
+        return f"Куратор: {self.user.get_full_name()}"
+
 
 class StudentProxy(User):
     class Meta:
@@ -60,11 +132,13 @@ class StudentProxy(User):
         verbose_name = "Студент"
         verbose_name_plural = "Студенты"
 
+
 class CuratorProxy(User):
     class Meta:
         proxy = True
         verbose_name = "Куратор"
         verbose_name_plural = "Кураторы"
+
 
 class AdminProxy(User):
     class Meta:
