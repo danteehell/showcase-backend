@@ -7,7 +7,8 @@ from django.db.models import Q
 from django.utils import timezone
 
 
-
+# TODO: Надо продумать данные для каждой роли
+# Например у студента будет специальность, у куратора кафедра итд.
 class User(AbstractUser):
     
     class Roles(models.TextChoices):
@@ -22,22 +23,6 @@ class User(AbstractUser):
         choices=Roles.choices,
         default=Roles.STUDENT,
     )
-    specialty = models.ForeignKey(
-        'showcase.FilterOption',
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        limit_choices_to={'category__name': 'Специальность'},
-        related_name="students",
-        verbose_name="Направление подготовки"
-    )
-    course = models.PositiveSmallIntegerField(
-        verbose_name='Курс',
-        null=True, blank=True,
-        choices=[(i, f"{i} курс") for i in range(1, 5)]
-    )
-    keycloak_id = models.CharField(max_length=255, blank=True, null=True, unique=True)
-    
     def get_full_name(self):
         if self.last_name and self.first_name and self.middle_name:
             return f"{self.last_name} {self.first_name} {self.middle_name}"
@@ -58,7 +43,16 @@ class User(AbstractUser):
         if self.first_name or self.last_name:
             return f"{self.last_name} {self.first_name}".strip()
         return self.username
+    
+class StudentProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
+    course = models.PositiveSmallIntegerField(verbose_name="Курс")
+    specialty = models.ForeignKey('showcase.FilterOption', on_delete=models.SET_NULL, null=True, verbose_name="Специальность")
 
+# ASK: Нам нужно знать какие данные есть в лк у преподавателей.
+class CuratorProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='curator_profile')
+    department = models.CharField(max_length=255, verbose_name="Кафедра")
 
 class StudentProxy(User):
     class Meta:

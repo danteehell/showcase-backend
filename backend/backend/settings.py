@@ -55,7 +55,7 @@ REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'tasks.exceptions.api_exception_handler',
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'users.authentication.KeycloakAuthentication',
+        'rest_framework.authentication.SessionAuthentication', # Теперь используем сессии (Cookies)
     ),
 }
 
@@ -110,6 +110,10 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
 AUTH_USER_MODEL = 'users.User'
+AUTHENTICATION_BACKENDS = [
+    'users.backends.EmailOrUsernameBackend', # Наш кастомный бэкенд
+    'django.contrib.auth.backends.ModelBackend', # Оставляем для админки
+]
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
@@ -248,10 +252,4 @@ UNFOLD = {
             "500": "253 153 40",
         }
     },
-}
-
-OIDC_AUTH = {
-    'OIDC_ENDPOINT': os.getenv('KEYCLOAK_REALM_URL'),
-    'OIDC_AUDIENCES': ['account'],
-    'OIDC_ALLOW_INSECURE': True,
 }

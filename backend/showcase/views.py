@@ -87,7 +87,6 @@ class ProjectViewSet(viewsets.ModelViewSet):
     # TODO: затестить
     def enroll(self, request, pk=None):
         with transaction.atomic():
-            # Блокируем проект, чтобы два студента не заняли последнее место
             project = Project.objects.select_for_update().filter(pk=pk).first()
             
             if not project:
