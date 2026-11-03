@@ -2,7 +2,7 @@ from django.contrib import admin, messages
 from django.utils import timezone
 from unfold.admin import ModelAdmin, TabularInline
 
-from .models import Task, TaskCategory, TaskSkill, TaskAssignment
+from .models import Task, TaskAssignment, TaskCategory, TaskSkill
 
 
 @admin.register(TaskCategory)
@@ -42,8 +42,16 @@ class AssignmentInline(TabularInline):
 @admin.register(Task)
 class TaskAdmin(ModelAdmin):
     list_display = (
-        "id", "title", "project", "curator", "category",
-        "difficulty", "points", "status", "filled_display", "deadline",
+        "id",
+        "title",
+        "project",
+        "curator",
+        "category",
+        "difficulty",
+        "points",
+        "status",
+        "filled_display",
+        "deadline",
     )
     list_filter = ("status", "difficulty", "category", "project", "curator")
     list_display_links = ("title",)
@@ -57,47 +65,82 @@ class TaskAdmin(ModelAdmin):
     inlines = (SkillInline, AssignmentInline)
 
     readonly_fields = (
-        "created_at", "updated_at",
-        "published_at", "taken_at", "completed_at",
-        "withdrawn_at", "expired_at", "removed_at",
+        "created_at",
+        "updated_at",
+        "published_at",
+        "taken_at",
+        "completed_at",
+        "withdrawn_at",
+        "expired_at",
+        "removed_at",
         "filled_people",
     )
 
     fieldsets = (
-        ("Основная информация", {
-            "fields": ("title", "short_description", "description"),
-        }),
-        ("Проект и куратор", {
-            "fields": ("project", "curator", "category"),
-        }),
-        ("Характеристики", {
-            "fields": ("difficulty", "points"),
-        }),
-        ("Сроки", {
-            "fields": ("start_date", "deadline"),
-        }),
-        ("Требования к исполнителю", {
-            "fields": (
-                "required_people", "filled_people",
-                "required_course_min", "required_course_max",
-                "required_specialty",
-            ),
-        }),
-        ("Состояние", {
-            "fields": ("status",),
-        }),
-        ("Снятие с биржи", {
-            "classes": ("collapse",),
-            "fields": ("removal_reason", "removal_comment", "removed_at"),
-        }),
-        ("Системные метки", {
-            "classes": ("collapse",),
-            "fields": (
-                "created_at", "updated_at",
-                "published_at", "taken_at", "completed_at",
-                "withdrawn_at", "expired_at",
-            ),
-        }),
+        (
+            "Основная информация",
+            {
+                "fields": ("title", "short_description", "description"),
+            },
+        ),
+        (
+            "Проект и куратор",
+            {
+                "fields": ("project", "curator", "category"),
+            },
+        ),
+        (
+            "Характеристики",
+            {
+                "fields": ("difficulty", "points"),
+            },
+        ),
+        (
+            "Сроки",
+            {
+                "fields": ("start_date", "deadline"),
+            },
+        ),
+        (
+            "Требования к исполнителю",
+            {
+                "fields": (
+                    "required_people",
+                    "filled_people",
+                    "required_course_min",
+                    "required_course_max",
+                    "required_specialty",
+                ),
+            },
+        ),
+        (
+            "Состояние",
+            {
+                "fields": ("status",),
+            },
+        ),
+        (
+            "Снятие с биржи",
+            {
+                "classes": ("collapse",),
+                "fields": ("removal_reason", "removal_comment", "removed_at"),
+            },
+        ),
+        (
+            "Системные метки",
+            {
+                "classes": ("collapse",),
+                "fields": (
+                    "created_at",
+                    "updated_at",
+                    "published_at",
+                    "taken_at",
+                    "completed_at",
+                    "withdrawn_at",
+                    "expired_at",
+                ),
+            },
+        ),
     )
 
     actions = ("action_publish", "action_withdraw", "action_expire")
@@ -149,8 +192,13 @@ class TaskSkillAdmin(ModelAdmin):
 @admin.register(TaskAssignment)
 class TaskAssignmentAdmin(ModelAdmin):
     list_display = (
-        "id", "task", "student", "status",
-        "revision_count", "revisions_left_display", "taken_at",
+        "id",
+        "task",
+        "student",
+        "status",
+        "revision_count",
+        "revisions_left_display",
+        "taken_at",
     )
     list_filter = ("status", "task__project", "task__curator")
     search_fields = ("task__title", "student__username", "student__email")
@@ -160,24 +208,41 @@ class TaskAssignmentAdmin(ModelAdmin):
     autocomplete_fields = ("task",)
 
     readonly_fields = (
-        "taken_at", "started_at", "submitted_at",
-        "completed_at", "removed_at", "removed_by", "removal_reason",
+        "taken_at",
+        "started_at",
+        "submitted_at",
+        "completed_at",
+        "removed_at",
+        "removed_by",
+        "removal_reason",
         "revision_count",
     )
 
     fieldsets = (
-        ("Запись", {
-            "fields": ("task", "student", "status"),
-        }),
-        ("Ход работы", {
-            "fields": (
-                "taken_at", "started_at", "submitted_at", "completed_at",
-                "revision_count",
-            ),
-        }),
-        ("Снятие", {
-            "fields": ("removed_at", "removal_reason", "removed_by"),
-        }),
+        (
+            "Запись",
+            {
+                "fields": ("task", "student", "status"),
+            },
+        ),
+        (
+            "Ход работы",
+            {
+                "fields": (
+                    "taken_at",
+                    "started_at",
+                    "submitted_at",
+                    "completed_at",
+                    "revision_count",
+                ),
+            },
+        ),
+        (
+            "Снятие",
+            {
+                "fields": ("removed_at", "removal_reason", "removed_by"),
+            },
+        ),
     )
 
     actions = ("action_accept", "action_return")

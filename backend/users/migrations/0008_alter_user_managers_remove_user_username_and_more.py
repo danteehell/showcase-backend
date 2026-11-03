@@ -4,30 +4,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0007_remove_user_course_remove_user_keycloak_id_and_more'),
+        ("users", "0007_remove_user_course_remove_user_keycloak_id_and_more"),
     ]
 
     operations = [
         migrations.AlterModelManagers(
-            name='user',
-            managers=[
-            ],
+            name="user",
+            managers=[],
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='username',
+            model_name="user",
+            name="username",
         ),
         migrations.AlterField(
-            model_name='user',
-            name='email',
-            field=models.EmailField(max_length=254, unique=True, verbose_name='Логин'),
+            model_name="user",
+            name="email",
+            field=models.EmailField(max_length=254, unique=True, verbose_name="Логин"),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='middle_name',
-            field=models.CharField(blank=True, default='', max_length=150, verbose_name='Отчество'),
+            model_name="user",
+            name="middle_name",
+            field=models.CharField(
+                blank=True, default="", max_length=150, verbose_name="Отчество"
+            ),
             preserve_default=False,
         ),
     ]

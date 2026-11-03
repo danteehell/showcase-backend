@@ -1,12 +1,16 @@
 from django.db import models
+
 from backend import settings
-from users.models import Specialty 
+from users.models import Specialty
+
 
 class Partner(models.Model):
     name = models.CharField(max_length=200, verbose_name="Партнёр")
     website = models.URLField(blank=True, null=True, verbose_name="Сайт")
     email = models.EmailField(blank=True, null=True, verbose_name="Email")
-    phone = models.CharField(max_length=50, blank=True, null=True, verbose_name="Телефон")
+    phone = models.CharField(
+        max_length=50, blank=True, null=True, verbose_name="Телефон"
+    )
     internship = models.BooleanField(null=True, blank=True, verbose_name="Стажировка")
 
     class Meta:
@@ -15,6 +19,7 @@ class Partner(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class FilterCategory(models.Model):
     name = models.CharField(max_length=100, verbose_name="Название категории")
@@ -26,8 +31,14 @@ class FilterCategory(models.Model):
     def __str__(self):
         return self.name
 
+
 class FilterOption(models.Model):
-    category = models.ForeignKey(FilterCategory, on_delete=models.CASCADE, related_name="options", verbose_name="Категория")
+    category = models.ForeignKey(
+        FilterCategory,
+        on_delete=models.CASCADE,
+        related_name="options",
+        verbose_name="Категория",
+    )
     name = models.CharField(max_length=200, verbose_name="Опция фильтра")
 
     class Meta:
@@ -37,20 +48,23 @@ class FilterOption(models.Model):
     def __str__(self):
         return f"{self.category.name} - {self.name}"
 
+
 class ScheduleItem(models.Model):
     DAYS = [
-        (0, 'Понедельник'),
-        (1, 'Вторник'),
-        (2, 'Среда'),
-        (3, 'Четверг'),
-        (4, 'Пятница'),
-        (5, 'Суббота'),
-        (6, 'Воскресенье')
+        (0, "Понедельник"),
+        (1, "Вторник"),
+        (2, "Среда"),
+        (3, "Четверг"),
+        (4, "Пятница"),
+        (5, "Суббота"),
+        (6, "Воскресенье"),
     ]
     day_of_week = models.IntegerField(choices=DAYS, verbose_name="День недели")
     start_time = models.TimeField(verbose_name="Время начала")
     end_time = models.TimeField(blank=True, null=True, verbose_name="Время окончания")
-    note = models.CharField(max_length=200, blank=True, null=True, verbose_name="Примечание")
+    note = models.CharField(
+        max_length=200, blank=True, null=True, verbose_name="Примечание"
+    )
 
     class Meta:
         verbose_name = "Расписание"
@@ -62,23 +76,88 @@ class ScheduleItem(models.Model):
 
 class Project(models.Model):
     title = models.CharField(max_length=300, verbose_name="Название проекта")
-    
-    theme = models.ForeignKey(FilterOption, on_delete=models.SET_NULL, null=True, blank=True, related_name="projects_as_theme", limit_choices_to={"category__name": "Тематика"}, verbose_name="Тематика")
-    specialties = models.ManyToManyField(Specialty, blank=True, related_name="projects", verbose_name="Направления подготовки")
-    campus = models.ForeignKey(FilterOption, on_delete=models.SET_NULL, null=True, blank=True, related_name="projects_as_campus", limit_choices_to={"category__name": "Корпус"}, verbose_name="Корпус")
-    courses = models.ManyToManyField(FilterOption, blank=True, related_name="projects_as_course", limit_choices_to={"category__name": "Курс"}, verbose_name="Курсы студентов")
-    difficulty = models.ForeignKey(FilterOption, on_delete=models.SET_NULL, null=True, blank=True, related_name="projects_as_difficulty", limit_choices_to={"category__name": "Сложность"}, verbose_name="Сложность")
-    
-    shedule = models.ForeignKey(ScheduleItem, on_delete=models.SET_NULL, verbose_name="Занятия", null=True, blank=True)
-    partner = models.ForeignKey("Partner", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Партнёр")
-    curator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, limit_choices_to={'role': 'curator'}, related_name='curated_projects', verbose_name="Куратор")
-    internship = models.BooleanField(default=False, verbose_name="Стажировка", null=True, blank=True)
-    spots_remaining = models.IntegerField(default=0, verbose_name="Оставшиеся места", null=True, blank=True)
-    short_description = models.TextField(blank=True, verbose_name="Короткое описание", null=True)
-    long_description = models.TextField(blank=True, verbose_name="Расширенное описание", null=True)
+
+    theme = models.ForeignKey(
+        FilterOption,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects_as_theme",
+        limit_choices_to={"category__name": "Тематика"},
+        verbose_name="Тематика",
+    )
+    specialties = models.ManyToManyField(
+        Specialty,
+        blank=True,
+        related_name="projects",
+        verbose_name="Направления подготовки",
+    )
+    campus = models.ForeignKey(
+        FilterOption,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects_as_campus",
+        limit_choices_to={"category__name": "Корпус"},
+        verbose_name="Корпус",
+    )
+    courses = models.ManyToManyField(
+        FilterOption,
+        blank=True,
+        related_name="projects_as_course",
+        limit_choices_to={"category__name": "Курс"},
+        verbose_name="Курсы студентов",
+    )
+    difficulty = models.ForeignKey(
+        FilterOption,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects_as_difficulty",
+        limit_choices_to={"category__name": "Сложность"},
+        verbose_name="Сложность",
+    )
+
+    shedule = models.ForeignKey(
+        ScheduleItem,
+        on_delete=models.SET_NULL,
+        verbose_name="Занятия",
+        null=True,
+        blank=True,
+    )
+    partner = models.ForeignKey(
+        "Partner",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Партнёр",
+    )
+    curator = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={"role": "curator"},
+        related_name="curated_projects",
+        verbose_name="Куратор",
+    )
+    internship = models.BooleanField(
+        default=False, verbose_name="Стажировка", null=True, blank=True
+    )
+    spots_remaining = models.IntegerField(
+        default=0, verbose_name="Оставшиеся места", null=True, blank=True
+    )
+    short_description = models.TextField(
+        blank=True, verbose_name="Короткое описание", null=True
+    )
+    long_description = models.TextField(
+        blank=True, verbose_name="Расширенное описание", null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-    is_active = models.BooleanField(default=True, verbose_name="Доступен", null=True, blank=True)
+    is_active = models.BooleanField(
+        default=True, verbose_name="Доступен", null=True, blank=True
+    )
 
     class Meta:
         verbose_name = "Проект"
@@ -86,26 +165,32 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
-    
+
     @classmethod
     def get_total_count(cls):
         return cls.objects.count()
-    
+
     @classmethod
     def get_active_count(cls):
         return cls.objects.filter(is_active=True).count()
-    
+
     @classmethod
     def get_available_count(cls):
         return cls.objects.filter(is_active=True, spots_remaining__gt=0).count()
 
+
 class ProjectListItem(models.Model):
     TYPES = [
-        ('requirement', 'Требование'),
-        ('feature', 'Особенность'),
-        ('motivation', 'Мотивация')
+        ("requirement", "Требование"),
+        ("feature", "Особенность"),
+        ("motivation", "Мотивация"),
     ]
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='list_items', verbose_name="Проект")
+    project = models.ForeignKey(
+        Project,
+        on_delete=models.CASCADE,
+        related_name="list_items",
+        verbose_name="Проект",
+    )
     type = models.CharField(max_length=50, choices=TYPES, verbose_name="Тип элемента")
     position = models.PositiveIntegerField(default=0, verbose_name="Позиция")
     text = models.TextField(verbose_name="Текст")
@@ -117,15 +202,20 @@ class ProjectListItem(models.Model):
     def __str__(self):
         return f"{self.project.title} - {self.get_type_display()} ({self.position})"
 
+
 class ProjectEnrollment(models.Model):
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='enrollments')
-    student = models.ForeignKey('users.User', on_delete=models.CASCADE, related_name='project_enrollments')
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="enrollments"
+    )
+    student = models.ForeignKey(
+        "users.User", on_delete=models.CASCADE, related_name="project_enrollments"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "Заявка на проект"
         verbose_name_plural = "Заявки на проекты"
-        unique_together = ('project', 'student')
+        unique_together = ("project", "student")
 
     def __str__(self):
         return f"{self.student} -> {self.project}"

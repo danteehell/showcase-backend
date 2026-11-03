@@ -4,45 +4,68 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0008_alter_project_campus_delete_campus'),
+        ("showcase", "0008_alter_project_campus_delete_campus"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='courses',
-            field=models.ManyToManyField(blank=True, limit_choices_to={'category__category_type': 'course'}, null=True, related_name='projects_as_course', to='showcase.filteroption', verbose_name='Курсы студентов'),
+            model_name="project",
+            name="courses",
+            field=models.ManyToManyField(
+                blank=True,
+                limit_choices_to={"category__category_type": "course"},
+                null=True,
+                related_name="projects_as_course",
+                to="showcase.filteroption",
+                verbose_name="Курсы студентов",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='internship',
-            field=models.BooleanField(blank=True, default=False, null=True, verbose_name='Стажировка'),
+            model_name="project",
+            name="internship",
+            field=models.BooleanField(
+                blank=True, default=False, null=True, verbose_name="Стажировка"
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='is_active',
-            field=models.BooleanField(blank=True, default=True, null=True, verbose_name='Доступен'),
+            model_name="project",
+            name="is_active",
+            field=models.BooleanField(
+                blank=True, default=True, null=True, verbose_name="Доступен"
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='long_description',
-            field=models.TextField(blank=True, null=True, verbose_name='Расширенное описание'),
+            model_name="project",
+            name="long_description",
+            field=models.TextField(
+                blank=True, null=True, verbose_name="Расширенное описание"
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='short_description',
-            field=models.TextField(blank=True, null=True, verbose_name='Короткое описание'),
+            model_name="project",
+            name="short_description",
+            field=models.TextField(
+                blank=True, null=True, verbose_name="Короткое описание"
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='specialties',
-            field=models.ManyToManyField(blank=True, limit_choices_to={'category__category_type': 'specialty'}, null=True, related_name='projects_as_specialty', to='showcase.filteroption', verbose_name='Специальности'),
+            model_name="project",
+            name="specialties",
+            field=models.ManyToManyField(
+                blank=True,
+                limit_choices_to={"category__category_type": "specialty"},
+                null=True,
+                related_name="projects_as_specialty",
+                to="showcase.filteroption",
+                verbose_name="Специальности",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='spots_remaining',
-            field=models.IntegerField(blank=True, default=0, null=True, verbose_name='Оставшиеся места'),
+            model_name="project",
+            name="spots_remaining",
+            field=models.IntegerField(
+                blank=True, default=0, null=True, verbose_name="Оставшиеся места"
+            ),
         ),
     ]

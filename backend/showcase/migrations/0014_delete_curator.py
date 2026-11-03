@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0013_delete_courseyear'),
-        ('tasks', '0004_alter_task_curator_alter_task_required_specialty'),
+        ("showcase", "0013_delete_courseyear"),
+        ("tasks", "0004_alter_task_curator_alter_task_required_specialty"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='Curator',
+            name="Curator",
         ),
     ]

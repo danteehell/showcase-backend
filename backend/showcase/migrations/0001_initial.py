@@ -5,137 +5,375 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Campus',
+            name="Campus",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='Корпус')),
-                ('address', models.CharField(blank=True, max_length=400, null=True, verbose_name='Адрес')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200, verbose_name="Корпус")),
+                (
+                    "address",
+                    models.CharField(
+                        blank=True, max_length=400, null=True, verbose_name="Адрес"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Корпус',
-                'verbose_name_plural': 'Корпуса',
+                "verbose_name": "Корпус",
+                "verbose_name_plural": "Корпуса",
             },
         ),
         migrations.CreateModel(
-            name='CourseYear',
+            name="CourseYear",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('year', models.PositiveSmallIntegerField(verbose_name='Курс')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("year", models.PositiveSmallIntegerField(verbose_name="Курс")),
             ],
             options={
-                'verbose_name': 'Курс студента',
-                'verbose_name_plural': 'Курсы студентов',
+                "verbose_name": "Курс студента",
+                "verbose_name_plural": "Курсы студентов",
             },
         ),
         migrations.CreateModel(
-            name='Curator',
+            name="Curator",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('first_name', models.CharField(max_length=100, verbose_name='Имя')),
-                ('last_name', models.CharField(max_length=100, verbose_name='Фамилия')),
-                ('email', models.EmailField(blank=True, max_length=254, null=True, verbose_name='Email')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("first_name", models.CharField(max_length=100, verbose_name="Имя")),
+                ("last_name", models.CharField(max_length=100, verbose_name="Фамилия")),
+                (
+                    "email",
+                    models.EmailField(
+                        blank=True, max_length=254, null=True, verbose_name="Email"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Куратор',
-                'verbose_name_plural': 'Кураторы',
+                "verbose_name": "Куратор",
+                "verbose_name_plural": "Кураторы",
             },
         ),
         migrations.CreateModel(
-            name='FilterCategory',
+            name="FilterCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100, verbose_name='Название категории фильтра')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=100, verbose_name="Название категории фильтра"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Категория фильтра',
-                'verbose_name_plural': 'Категории фильтров',
+                "verbose_name": "Категория фильтра",
+                "verbose_name_plural": "Категории фильтров",
             },
         ),
         migrations.CreateModel(
-            name='Partner',
+            name="Partner",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='Партнёр')),
-                ('website', models.URLField(blank=True, null=True, verbose_name='Сайт')),
-                ('email', models.EmailField(blank=True, max_length=254, null=True, verbose_name='Email')),
-                ('phone', models.CharField(blank=True, max_length=50, null=True, verbose_name='Телефон')),
-                ('internship', models.BooleanField(blank=True, null=True, verbose_name='Стажировка')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=200, verbose_name="Партнёр")),
+                (
+                    "website",
+                    models.URLField(blank=True, null=True, verbose_name="Сайт"),
+                ),
+                (
+                    "email",
+                    models.EmailField(
+                        blank=True, max_length=254, null=True, verbose_name="Email"
+                    ),
+                ),
+                (
+                    "phone",
+                    models.CharField(
+                        blank=True, max_length=50, null=True, verbose_name="Телефон"
+                    ),
+                ),
+                (
+                    "internship",
+                    models.BooleanField(
+                        blank=True, null=True, verbose_name="Стажировка"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Партнёр',
-                'verbose_name_plural': 'Партнёры',
+                "verbose_name": "Партнёр",
+                "verbose_name_plural": "Партнёры",
             },
         ),
         migrations.CreateModel(
-            name='ScheduleItem',
+            name="ScheduleItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('day_of_week', models.IntegerField(choices=[(0, 'Понедельник'), (1, 'Вторник'), (2, 'Среда'), (3, 'Четверг'), (4, 'Пятница'), (5, 'Суббота'), (6, 'Воскресенье')], verbose_name='День недели')),
-                ('start_time', models.TimeField(verbose_name='Время начала')),
-                ('end_time', models.TimeField(blank=True, null=True, verbose_name='Время окончания')),
-                ('note', models.CharField(blank=True, max_length=200, null=True, verbose_name='Примечание')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "day_of_week",
+                    models.IntegerField(
+                        choices=[
+                            (0, "Понедельник"),
+                            (1, "Вторник"),
+                            (2, "Среда"),
+                            (3, "Четверг"),
+                            (4, "Пятница"),
+                            (5, "Суббота"),
+                            (6, "Воскресенье"),
+                        ],
+                        verbose_name="День недели",
+                    ),
+                ),
+                ("start_time", models.TimeField(verbose_name="Время начала")),
+                (
+                    "end_time",
+                    models.TimeField(
+                        blank=True, null=True, verbose_name="Время окончания"
+                    ),
+                ),
+                (
+                    "note",
+                    models.CharField(
+                        blank=True, max_length=200, null=True, verbose_name="Примечание"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Расписание',
-                'verbose_name_plural': 'Расписания',
+                "verbose_name": "Расписание",
+                "verbose_name_plural": "Расписания",
             },
         ),
         migrations.CreateModel(
-            name='FilterOption',
+            name="FilterOption",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=200, verbose_name='Опция фильтра')),
-                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='options', to='showcase.filtercategory', verbose_name='Категория')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(max_length=200, verbose_name="Опция фильтра"),
+                ),
+                (
+                    "category",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="options",
+                        to="showcase.filtercategory",
+                        verbose_name="Категория",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Опция фильтра',
-                'verbose_name_plural': 'Опции фильтров',
+                "verbose_name": "Опция фильтра",
+                "verbose_name_plural": "Опции фильтров",
             },
         ),
         migrations.CreateModel(
-            name='Project',
+            name="Project",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=300, verbose_name='Название проекта')),
-                ('short_description', models.TextField(blank=True, verbose_name='Короткое описание')),
-                ('long_description', models.TextField(blank=True, verbose_name='Расширенное описание')),
-                ('internship', models.BooleanField(blank=True, null=True, verbose_name='Стажировка')),
-                ('spots_remaining', models.IntegerField(default=0, verbose_name='Оставшиеся места')),
-                ('difficulty', models.PositiveSmallIntegerField(choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')], default=1, verbose_name='Сложность')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Дата обновления')),
-                ('campus', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='showcase.campus', verbose_name='Корпус')),
-                ('course_years', models.ManyToManyField(blank=True, to='showcase.courseyear', verbose_name='Курсы студентов')),
-                ('curator', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='showcase.curator', verbose_name='Куратор')),
-                ('filters', models.ManyToManyField(blank=True, to='showcase.filteroption', verbose_name='Фильтры')),
-                ('partner', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='showcase.partner', verbose_name='Партнёр')),
-                ('schedules', models.ManyToManyField(blank=True, to='showcase.scheduleitem', verbose_name='Расписание')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(max_length=300, verbose_name="Название проекта"),
+                ),
+                (
+                    "short_description",
+                    models.TextField(blank=True, verbose_name="Короткое описание"),
+                ),
+                (
+                    "long_description",
+                    models.TextField(blank=True, verbose_name="Расширенное описание"),
+                ),
+                (
+                    "internship",
+                    models.BooleanField(
+                        blank=True, null=True, verbose_name="Стажировка"
+                    ),
+                ),
+                (
+                    "spots_remaining",
+                    models.IntegerField(default=0, verbose_name="Оставшиеся места"),
+                ),
+                (
+                    "difficulty",
+                    models.PositiveSmallIntegerField(
+                        choices=[(1, "1"), (2, "2"), (3, "3"), (4, "4"), (5, "5")],
+                        default=1,
+                        verbose_name="Сложность",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, verbose_name="Дата создания"
+                    ),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Дата обновления"),
+                ),
+                (
+                    "campus",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="showcase.campus",
+                        verbose_name="Корпус",
+                    ),
+                ),
+                (
+                    "course_years",
+                    models.ManyToManyField(
+                        blank=True,
+                        to="showcase.courseyear",
+                        verbose_name="Курсы студентов",
+                    ),
+                ),
+                (
+                    "curator",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="showcase.curator",
+                        verbose_name="Куратор",
+                    ),
+                ),
+                (
+                    "filters",
+                    models.ManyToManyField(
+                        blank=True, to="showcase.filteroption", verbose_name="Фильтры"
+                    ),
+                ),
+                (
+                    "partner",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="showcase.partner",
+                        verbose_name="Партнёр",
+                    ),
+                ),
+                (
+                    "schedules",
+                    models.ManyToManyField(
+                        blank=True,
+                        to="showcase.scheduleitem",
+                        verbose_name="Расписание",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Проект',
-                'verbose_name_plural': 'Проекты',
+                "verbose_name": "Проект",
+                "verbose_name_plural": "Проекты",
             },
         ),
         migrations.CreateModel(
-            name='ProjectListItem',
+            name="ProjectListItem",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('type', models.CharField(choices=[('requirement', 'Требование'), ('feature', 'Особенность'), ('motivation', 'Мотивация')], max_length=50, verbose_name='Тип элемента')),
-                ('position', models.PositiveIntegerField(default=0, verbose_name='Позиция')),
-                ('text', models.TextField(verbose_name='Текст')),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='list_items', to='showcase.project', verbose_name='Проект')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("requirement", "Требование"),
+                            ("feature", "Особенность"),
+                            ("motivation", "Мотивация"),
+                        ],
+                        max_length=50,
+                        verbose_name="Тип элемента",
+                    ),
+                ),
+                (
+                    "position",
+                    models.PositiveIntegerField(default=0, verbose_name="Позиция"),
+                ),
+                ("text", models.TextField(verbose_name="Текст")),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="list_items",
+                        to="showcase.project",
+                        verbose_name="Проект",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Элемент списка проекта',
-                'verbose_name_plural': 'Элементы списков проектов',
+                "verbose_name": "Элемент списка проекта",
+                "verbose_name_plural": "Элементы списков проектов",
             },
         ),
     ]

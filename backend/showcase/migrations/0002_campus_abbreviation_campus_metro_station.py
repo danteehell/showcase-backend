@@ -4,20 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0001_initial'),
+        ("showcase", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='campus',
-            name='abbreviation',
-            field=models.CharField(blank=True, max_length=2, null=True, verbose_name='Аббревиатура'),
+            model_name="campus",
+            name="abbreviation",
+            field=models.CharField(
+                blank=True, max_length=2, null=True, verbose_name="Аббревиатура"
+            ),
         ),
         migrations.AddField(
-            model_name='campus',
-            name='metro_station',
-            field=models.CharField(blank=True, max_length=20, null=True, verbose_name='Станция метро'),
+            model_name="campus",
+            name="metro_station",
+            field=models.CharField(
+                blank=True, max_length=20, null=True, verbose_name="Станция метро"
+            ),
         ),
     ]

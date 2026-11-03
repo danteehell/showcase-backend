@@ -6,73 +6,150 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0008_alter_user_managers_remove_user_username_and_more'),
+        ("users", "0008_alter_user_managers_remove_user_username_and_more"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Department',
+            name="Department",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True, verbose_name='Название кафедры')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=255, unique=True, verbose_name="Название кафедры"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Кафедра',
-                'verbose_name_plural': 'Кафедры',
-                'ordering': ['name'],
+                "verbose_name": "Кафедра",
+                "verbose_name_plural": "Кафедры",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='Specialty',
+            name="Specialty",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('code', models.CharField(max_length=20, unique=True, verbose_name='Код направления')),
-                ('name', models.CharField(max_length=255, verbose_name='Название направления')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "code",
+                    models.CharField(
+                        max_length=20, unique=True, verbose_name="Код направления"
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=255, verbose_name="Название направления"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Направление подготовки',
-                'verbose_name_plural': 'Направления подготовки',
-                'ordering': ['code'],
+                "verbose_name": "Направление подготовки",
+                "verbose_name_plural": "Направления подготовки",
+                "ordering": ["code"],
             },
         ),
         migrations.AlterModelOptions(
-            name='curatorprofile',
-            options={'verbose_name': 'Профиль куратора', 'verbose_name_plural': 'Профили кураторов'},
+            name="curatorprofile",
+            options={
+                "verbose_name": "Профиль куратора",
+                "verbose_name_plural": "Профили кураторов",
+            },
         ),
         migrations.AlterModelOptions(
-            name='studentprofile',
-            options={'verbose_name': 'Профиль студента', 'verbose_name_plural': 'Профили студентов'},
+            name="studentprofile",
+            options={
+                "verbose_name": "Профиль студента",
+                "verbose_name_plural": "Профили студентов",
+            },
         ),
         migrations.AlterField(
-            model_name='curatorprofile',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='curator_profile', to=settings.AUTH_USER_MODEL, verbose_name='Пользователь'),
+            model_name="curatorprofile",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="curator_profile",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Пользователь",
+            ),
         ),
         migrations.AlterField(
-            model_name='studentprofile',
-            name='course',
-            field=models.PositiveSmallIntegerField(choices=[(1, '1 курс'), (2, '2 курс'), (3, '3 курс'), (4, '4 курс'), (5, '5 курс'), (6, '6 курс')], verbose_name='Курс'),
+            model_name="studentprofile",
+            name="course",
+            field=models.PositiveSmallIntegerField(
+                choices=[
+                    (1, "1 курс"),
+                    (2, "2 курс"),
+                    (3, "3 курс"),
+                    (4, "4 курс"),
+                    (5, "5 курс"),
+                    (6, "6 курс"),
+                ],
+                verbose_name="Курс",
+            ),
         ),
         migrations.AlterField(
-            model_name='studentprofile',
-            name='user',
-            field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='student_profile', to=settings.AUTH_USER_MODEL, verbose_name='Пользователь'),
+            model_name="studentprofile",
+            name="user",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="student_profile",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Пользователь",
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='role',
-            field=models.CharField(choices=[('admin', 'Администратор'), ('curator', 'Куратор'), ('student', 'Студент')], default='student', max_length=20, verbose_name='Роль'),
+            model_name="user",
+            name="role",
+            field=models.CharField(
+                choices=[
+                    ("admin", "Администратор"),
+                    ("curator", "Куратор"),
+                    ("student", "Студент"),
+                ],
+                default="student",
+                max_length=20,
+                verbose_name="Роль",
+            ),
         ),
         migrations.AlterField(
-            model_name='curatorprofile',
-            name='department',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='users.department', verbose_name='Кафедра'),
+            model_name="curatorprofile",
+            name="department",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="users.department",
+                verbose_name="Кафедра",
+            ),
         ),
         migrations.AlterField(
-            model_name='studentprofile',
-            name='specialty',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='users.specialty', verbose_name='Направление подготовки'),
+            model_name="studentprofile",
+            name="specialty",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="users.specialty",
+                verbose_name="Направление подготовки",
+            ),
         ),
     ]

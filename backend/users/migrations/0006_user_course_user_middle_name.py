@@ -4,20 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0005_user_specialty_delete_studentprofile'),
+        ("users", "0005_user_specialty_delete_studentprofile"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='course',
-            field=models.PositiveSmallIntegerField(blank=True, choices=[(1, '1 курс'), (2, '2 курс'), (3, '3 курс'), (4, '4 курс')], null=True, verbose_name='Курс'),
+            model_name="user",
+            name="course",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                choices=[(1, "1 курс"), (2, "2 курс"), (3, "3 курс"), (4, "4 курс")],
+                null=True,
+                verbose_name="Курс",
+            ),
         ),
         migrations.AddField(
-            model_name='user',
-            name='middle_name',
-            field=models.CharField(blank=True, max_length=150, null=True, verbose_name='Отчество'),
+            model_name="user",
+            name="middle_name",
+            field=models.CharField(
+                blank=True, max_length=150, null=True, verbose_name="Отчество"
+            ),
         ),
     ]

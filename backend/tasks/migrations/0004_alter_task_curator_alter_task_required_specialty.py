@@ -6,22 +6,36 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0013_delete_courseyear'),
-        ('tasks', '0003_taskassignment_task_completed_at_task_curator_and_more'),
+        ("showcase", "0013_delete_courseyear"),
+        ("tasks", "0003_taskassignment_task_completed_at_task_curator_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='curator',
-            field=models.ForeignKey(blank=True, limit_choices_to={'role': 'curator'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='curated_tasks', to=settings.AUTH_USER_MODEL, verbose_name='Куратор'),
+            model_name="task",
+            name="curator",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"role": "curator"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="curated_tasks",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Куратор",
+            ),
         ),
         migrations.AlterField(
-            model_name='task',
-            name='required_specialty',
-            field=models.ForeignKey(blank=True, limit_choices_to={'category__name': 'Специальность'}, null=True, on_delete=django.db.models.deletion.SET_NULL, to='showcase.filteroption', verbose_name='Требуемая специальность'),
+            model_name="task",
+            name="required_specialty",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"category__name": "Специальность"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="showcase.filteroption",
+                verbose_name="Требуемая специальность",
+            ),
         ),
     ]

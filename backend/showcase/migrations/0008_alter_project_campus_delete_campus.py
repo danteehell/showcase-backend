@@ -5,18 +5,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0007_alter_project_campus'),
+        ("showcase", "0007_alter_project_campus"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='campus',
-            field=models.ForeignKey(blank=True, limit_choices_to={'category__category_type': 'campus'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='projects_as_campus', to='showcase.filteroption', verbose_name='Корпус'),
+            model_name="project",
+            name="campus",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"category__category_type": "campus"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="projects_as_campus",
+                to="showcase.filteroption",
+                verbose_name="Корпус",
+            ),
         ),
         migrations.DeleteModel(
-            name='Campus',
+            name="Campus",
         ),
     ]

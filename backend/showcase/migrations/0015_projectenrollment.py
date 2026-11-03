@@ -6,25 +6,46 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0014_delete_curator'),
+        ("showcase", "0014_delete_curator"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='ProjectEnrollment',
+            name="ProjectEnrollment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='enrollments', to='showcase.project')),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_enrollments', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="enrollments",
+                        to="showcase.project",
+                    ),
+                ),
+                (
+                    "student",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="project_enrollments",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Заявка на проект',
-                'verbose_name_plural': 'Заявки на проекты',
-                'unique_together': {('project', 'student')},
+                "verbose_name": "Заявка на проект",
+                "verbose_name_plural": "Заявки на проекты",
+                "unique_together": {("project", "student")},
             },
         ),
     ]

@@ -6,16 +6,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0010_curator_patronymic'),
+        ("showcase", "0010_curator_patronymic"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='project',
-            name='curator',
-            field=models.ForeignKey(blank=True, limit_choices_to={'role': 'curator'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='curated_projects', to=settings.AUTH_USER_MODEL, verbose_name='Куратор'),
+            model_name="project",
+            name="curator",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"role": "curator"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="curated_projects",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Куратор",
+            ),
         ),
     ]

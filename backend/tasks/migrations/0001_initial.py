@@ -5,72 +5,194 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
-        ('showcase', '0010_curator_patronymic'),
+        ("showcase", "0010_curator_patronymic"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TaskCategory',
+            name="TaskCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True, verbose_name='Название категории')),
-                ('slug', models.SlugField(unique=True, verbose_name='Slug')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "name",
+                    models.CharField(
+                        max_length=255, unique=True, verbose_name="Название категории"
+                    ),
+                ),
+                ("slug", models.SlugField(unique=True, verbose_name="Slug")),
             ],
             options={
-                'verbose_name': 'Категория задачи',
-                'verbose_name_plural': 'Категории задач',
-                'ordering': ['name'],
+                "verbose_name": "Категория задачи",
+                "verbose_name_plural": "Категории задач",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='Task',
+            name="Task",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('title', models.CharField(max_length=255, verbose_name='Название задачи')),
-                ('short_description', models.TextField(verbose_name='Краткое описание')),
-                ('description', models.TextField(blank=True, null=True, verbose_name='Полное описание')),
-                ('difficulty', models.CharField(choices=[('easy', 'Лёгкая'), ('medium', 'Средняя'), ('hard', 'Сложная')], db_index=True, default='medium', max_length=10, verbose_name='Сложность')),
-                ('points', models.DecimalField(decimal_places=2, max_digits=6, verbose_name='Баллы')),
-                ('deadline', models.DateTimeField(blank=True, null=True, verbose_name='Дедлайн')),
-                ('status', models.CharField(choices=[('draft', 'Черновик'), ('published', 'Опубликована'), ('closed', 'Закрыта'), ('archived', 'Архив')], db_index=True, default='draft', max_length=20, verbose_name='Статус')),
-                ('created_at', models.DateTimeField(auto_now_add=True, verbose_name='Создано')),
-                ('updated_at', models.DateTimeField(auto_now=True, verbose_name='Обновлено')),
-                ('project', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='tasks', to='showcase.project', verbose_name='Проект')),
-                ('category', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='tasks', to='tasks.taskcategory', verbose_name='Категория')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "title",
+                    models.CharField(max_length=255, verbose_name="Название задачи"),
+                ),
+                (
+                    "short_description",
+                    models.TextField(verbose_name="Краткое описание"),
+                ),
+                (
+                    "description",
+                    models.TextField(
+                        blank=True, null=True, verbose_name="Полное описание"
+                    ),
+                ),
+                (
+                    "difficulty",
+                    models.CharField(
+                        choices=[
+                            ("easy", "Лёгкая"),
+                            ("medium", "Средняя"),
+                            ("hard", "Сложная"),
+                        ],
+                        db_index=True,
+                        default="medium",
+                        max_length=10,
+                        verbose_name="Сложность",
+                    ),
+                ),
+                (
+                    "points",
+                    models.DecimalField(
+                        decimal_places=2, max_digits=6, verbose_name="Баллы"
+                    ),
+                ),
+                (
+                    "deadline",
+                    models.DateTimeField(blank=True, null=True, verbose_name="Дедлайн"),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("draft", "Черновик"),
+                            ("published", "Опубликована"),
+                            ("closed", "Закрыта"),
+                            ("archived", "Архив"),
+                        ],
+                        db_index=True,
+                        default="draft",
+                        max_length=20,
+                        verbose_name="Статус",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(auto_now_add=True, verbose_name="Создано"),
+                ),
+                (
+                    "updated_at",
+                    models.DateTimeField(auto_now=True, verbose_name="Обновлено"),
+                ),
+                (
+                    "project",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="tasks",
+                        to="showcase.project",
+                        verbose_name="Проект",
+                    ),
+                ),
+                (
+                    "category",
+                    models.ForeignKey(
+                        blank=True,
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="tasks",
+                        to="tasks.taskcategory",
+                        verbose_name="Категория",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Задача',
-                'verbose_name_plural': 'Задачи',
-                'ordering': ['-created_at'],
+                "verbose_name": "Задача",
+                "verbose_name_plural": "Задачи",
+                "ordering": ["-created_at"],
             },
         ),
         migrations.CreateModel(
-            name='TaskSkill',
+            name="TaskSkill",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('skill', models.CharField(max_length=250, verbose_name='Навык')),
-                ('level_required', models.CharField(blank=True, choices=[('beginner', 'Начальный'), ('intermediate', 'Средний'), ('advanced', 'Продвинутый')], default='beginner', max_length=20, null=True, verbose_name='Уровень')),
-                ('task', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='task_skills', to='tasks.task', verbose_name='Задача')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("skill", models.CharField(max_length=250, verbose_name="Навык")),
+                (
+                    "level_required",
+                    models.CharField(
+                        blank=True,
+                        choices=[
+                            ("beginner", "Начальный"),
+                            ("intermediate", "Средний"),
+                            ("advanced", "Продвинутый"),
+                        ],
+                        default="beginner",
+                        max_length=20,
+                        null=True,
+                        verbose_name="Уровень",
+                    ),
+                ),
+                (
+                    "task",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="task_skills",
+                        to="tasks.task",
+                        verbose_name="Задача",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Навык задачи',
-                'verbose_name_plural': 'Навыки задач',
+                "verbose_name": "Навык задачи",
+                "verbose_name_plural": "Навыки задач",
             },
         ),
         migrations.AddIndex(
-            model_name='task',
-            index=models.Index(fields=['status'], name='tasks_task_status_4a0a95_idx'),
+            model_name="task",
+            index=models.Index(fields=["status"], name="tasks_task_status_4a0a95_idx"),
         ),
         migrations.AddIndex(
-            model_name='task',
-            index=models.Index(fields=['difficulty'], name='tasks_task_difficu_9292d3_idx'),
+            model_name="task",
+            index=models.Index(
+                fields=["difficulty"], name="tasks_task_difficu_9292d3_idx"
+            ),
         ),
         migrations.AlterUniqueTogether(
-            name='taskskill',
-            unique_together={('task', 'skill')},
+            name="taskskill",
+            unique_together={("task", "skill")},
         ),
     ]

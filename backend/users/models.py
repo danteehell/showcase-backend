@@ -1,12 +1,11 @@
-from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
-from django.conf import settings
+from django.db import models
 
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
-            raise ValueError('Email обязателен')
+            raise ValueError("Email обязателен")
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
@@ -14,27 +13,30 @@ class CustomUserManager(BaseUserManager):
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault("is_staff", True)
+        extra_fields.setdefault("is_superuser", True)
         return self.create_user(email, password, **extra_fields)
 
 
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True, verbose_name="Логин")
-    
+
     class Roles(models.TextChoices):
-        ADMIN = 'admin', 'Администратор'
-        CURATOR = 'curator', 'Куратор'
-        STUDENT = 'student', 'Студент'
-    #TODO: Продумать, студент может быть куратором вроде
-    role = models.CharField(max_length=20, choices=Roles.choices, default=Roles.STUDENT, verbose_name="Роль")
+        ADMIN = "admin", "Администратор"
+        CURATOR = "curator", "Куратор"
+        STUDENT = "student", "Студент"
+
+    # TODO: Продумать, студент может быть куратором вроде
+    role = models.CharField(
+        max_length=20, choices=Roles.choices, default=Roles.STUDENT, verbose_name="Роль"
+    )
     middle_name = models.CharField(max_length=150, blank=True, verbose_name="Отчество")
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = [] 
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = []
 
-    objects = CustomUserManager() 
+    objects = CustomUserManager()
 
     def get_full_name(self):
         if self.last_name and self.first_name and self.middle_name:
@@ -55,7 +57,7 @@ class User(AbstractUser):
 
     def is_student(self):
         return self.role == self.Roles.STUDENT
-    
+
     def __str__(self):
         return self.get_full_name()
 
@@ -67,37 +69,44 @@ class Specialty(models.Model):
     class Meta:
         verbose_name = "Направление подготовки"
         verbose_name_plural = "Направления подготовки"
-        ordering = ['code']
+        ordering = ["code"]
 
     def __str__(self):
         return f"{self.code} - {self.name}"
 
 
 class Department(models.Model):
-    name = models.CharField(max_length=255, unique=True, verbose_name="Название кафедры")
-    
+    name = models.CharField(
+        max_length=255, unique=True, verbose_name="Название кафедры"
+    )
+
     class Meta:
         verbose_name = "Кафедра"
         verbose_name_plural = "Кафедры"
-        ordering = ['name']
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
 
 
 class StudentProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile', verbose_name="Пользователь")
-    
-    course = models.PositiveSmallIntegerField(
-        verbose_name="Курс",
-        choices=[(i, f"{i} курс") for i in range(1, 7)]
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="student_profile",
+        verbose_name="Пользователь",
     )
-    
+
+    course = models.PositiveSmallIntegerField(
+        verbose_name="Курс", choices=[(i, f"{i} курс") for i in range(1, 7)]
+    )
+
     specialty = models.ForeignKey(
         Specialty,
-        on_delete=models.SET_NULL, 
-        null=True, blank=True, 
-        verbose_name="Направление подготовки"
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Направление подготовки",
     )
 
     class Meta:
@@ -109,13 +118,19 @@ class StudentProfile(models.Model):
 
 
 class CuratorProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='curator_profile', verbose_name="Пользователь")
-    
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="curator_profile",
+        verbose_name="Пользователь",
+    )
+
     department = models.ForeignKey(
         Department,
-        on_delete=models.SET_NULL, 
-        null=True, blank=True,
-        verbose_name="Кафедра"
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Кафедра",
     )
 
     class Meta:

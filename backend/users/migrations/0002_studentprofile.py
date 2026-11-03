@@ -6,23 +6,50 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0001_initial'),
+        ("users", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='StudentProfile',
+            name="StudentProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('course', models.PositiveSmallIntegerField(help_text='Текущий курс обучения', verbose_name='Курс')),
-                ('specialty', models.CharField(help_text='Например, ИВТ, Экономика', max_length=100, verbose_name='Специальность')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='student_profile', to=settings.AUTH_USER_MODEL, verbose_name='Пользователь')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "course",
+                    models.PositiveSmallIntegerField(
+                        help_text="Текущий курс обучения", verbose_name="Курс"
+                    ),
+                ),
+                (
+                    "specialty",
+                    models.CharField(
+                        help_text="Например, ИВТ, Экономика",
+                        max_length=100,
+                        verbose_name="Специальность",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="student_profile",
+                        to=settings.AUTH_USER_MODEL,
+                        verbose_name="Пользователь",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Профиль студента',
-                'verbose_name_plural': 'Профили студентов',
+                "verbose_name": "Профиль студента",
+                "verbose_name_plural": "Профили студентов",
             },
         ),
     ]

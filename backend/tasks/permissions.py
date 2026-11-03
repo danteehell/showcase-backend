@@ -1,4 +1,5 @@
 from rest_framework.permissions import BasePermission
+
 from .models import TaskAssignment
 
 
@@ -13,26 +14,25 @@ def available_actions(assignment, user):
 
     if user.id == assignment.student_id:
         if assignment.status == s.TAKEN:
-            actions.append('start')
+            actions.append("start")
         if assignment.status in (s.IN_PROGRESS, s.RETURNED):
-            actions.append('submit')
+            actions.append("submit")
 
     elif is_curator_of(user, assignment.task):
         if assignment.status == s.SUBMITTED:
             if assignment.revisions_left > 0:
-                actions.append('return')
-            actions.append('accept')
+                actions.append("return")
+            actions.append("accept")
         if assignment.status not in (s.COMPLETED, s.REMOVED_BY_CURATOR):
-            actions.append('remove')
+            actions.append("remove")
 
     return actions
 
 
 class IsStudentOrCuratorOfAssignment(BasePermission):
-    message = 'Нет доступа к этой записи'
+    message = "Нет доступа к этой записи"
 
     def has_object_permission(self, request, view, obj):
-        return (
-            request.user.id == obj.student_id
-            or is_curator_of(request.user, obj.task)
+        return request.user.id == obj.student_id or is_curator_of(
+            request.user, obj.task
         )

@@ -6,40 +6,80 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0015_projectenrollment'),
-        ('users', '0006_user_course_user_middle_name'),
+        ("showcase", "0015_projectenrollment"),
+        ("users", "0006_user_course_user_middle_name"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='user',
-            name='course',
+            model_name="user",
+            name="course",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='keycloak_id',
+            model_name="user",
+            name="keycloak_id",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='specialty',
+            model_name="user",
+            name="specialty",
         ),
         migrations.CreateModel(
-            name='CuratorProfile',
+            name="CuratorProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('department', models.CharField(max_length=255, verbose_name='Кафедра')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='curator_profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "department",
+                    models.CharField(max_length=255, verbose_name="Кафедра"),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="curator_profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='StudentProfile',
+            name="StudentProfile",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('course', models.PositiveSmallIntegerField(verbose_name='Курс')),
-                ('specialty', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='showcase.filteroption', verbose_name='Специальность')),
-                ('user', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='student_profile', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("course", models.PositiveSmallIntegerField(verbose_name="Курс")),
+                (
+                    "specialty",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        to="showcase.filteroption",
+                        verbose_name="Специальность",
+                    ),
+                ),
+                (
+                    "user",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="student_profile",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

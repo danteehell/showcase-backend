@@ -8,137 +8,303 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0011_alter_project_curator'),
-        ('tasks', '0002_alter_taskcategory_slug'),
+        ("showcase", "0011_alter_project_curator"),
+        ("tasks", "0002_alter_taskcategory_slug"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='TaskAssignment',
+            name="TaskAssignment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('status', models.CharField(choices=[('taken', 'Взял (ещё не начал)'), ('in_progress', 'В работе'), ('submitted', 'Сдал на проверку'), ('returned', 'Возвращена на доработку'), ('completed', 'Принята'), ('removed_by_curator', 'Снят куратором')], db_index=True, default='taken', max_length=24, verbose_name='Статус записи')),
-                ('taken_at', models.DateTimeField(db_index=True, default=django.utils.timezone.now, verbose_name='Дата взятия')),
-                ('started_at', models.DateTimeField(blank=True, null=True, verbose_name='Дата начала работы')),
-                ('submitted_at', models.DateTimeField(blank=True, null=True, verbose_name='Дата сдачи на проверку')),
-                ('revision_count', models.PositiveSmallIntegerField(default=0, verbose_name='Возвратов на доработку')),
-                ('completed_at', models.DateTimeField(blank=True, null=True, verbose_name='Дата приёмки')),
-                ('removed_at', models.DateTimeField(blank=True, null=True, verbose_name='Дата снятия куратором')),
-                ('removal_reason', models.TextField(blank=True, verbose_name='Причина снятия куратором')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("taken", "Взял (ещё не начал)"),
+                            ("in_progress", "В работе"),
+                            ("submitted", "Сдал на проверку"),
+                            ("returned", "Возвращена на доработку"),
+                            ("completed", "Принята"),
+                            ("removed_by_curator", "Снят куратором"),
+                        ],
+                        db_index=True,
+                        default="taken",
+                        max_length=24,
+                        verbose_name="Статус записи",
+                    ),
+                ),
+                (
+                    "taken_at",
+                    models.DateTimeField(
+                        db_index=True,
+                        default=django.utils.timezone.now,
+                        verbose_name="Дата взятия",
+                    ),
+                ),
+                (
+                    "started_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="Дата начала работы"
+                    ),
+                ),
+                (
+                    "submitted_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="Дата сдачи на проверку"
+                    ),
+                ),
+                (
+                    "revision_count",
+                    models.PositiveSmallIntegerField(
+                        default=0, verbose_name="Возвратов на доработку"
+                    ),
+                ),
+                (
+                    "completed_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="Дата приёмки"
+                    ),
+                ),
+                (
+                    "removed_at",
+                    models.DateTimeField(
+                        blank=True, null=True, verbose_name="Дата снятия куратором"
+                    ),
+                ),
+                (
+                    "removal_reason",
+                    models.TextField(
+                        blank=True, verbose_name="Причина снятия куратором"
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Запись на задачу',
-                'verbose_name_plural': 'Записи на задачи',
+                "verbose_name": "Запись на задачу",
+                "verbose_name_plural": "Записи на задачи",
             },
         ),
         migrations.AddField(
-            model_name='task',
-            name='completed_at',
-            field=models.DateTimeField(blank=True, db_index=True, null=True, verbose_name='Дата завершения'),
+            model_name="task",
+            name="completed_at",
+            field=models.DateTimeField(
+                blank=True, db_index=True, null=True, verbose_name="Дата завершения"
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='curator',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='showcase.curator', verbose_name='Куратор'),
+            model_name="task",
+            name="curator",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="showcase.curator",
+                verbose_name="Куратор",
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='expired_at',
-            field=models.DateTimeField(blank=True, db_index=True, null=True, verbose_name='Дата истечения срока'),
+            model_name="task",
+            name="expired_at",
+            field=models.DateTimeField(
+                blank=True,
+                db_index=True,
+                null=True,
+                verbose_name="Дата истечения срока",
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='filled_people',
-            field=models.PositiveIntegerField(default=0, verbose_name='Уже набрано'),
+            model_name="task",
+            name="filled_people",
+            field=models.PositiveIntegerField(default=0, verbose_name="Уже набрано"),
         ),
         migrations.AddField(
-            model_name='task',
-            name='published_at',
-            field=models.DateTimeField(blank=True, db_index=True, null=True, verbose_name='Дата публикации'),
+            model_name="task",
+            name="published_at",
+            field=models.DateTimeField(
+                blank=True, db_index=True, null=True, verbose_name="Дата публикации"
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='removal_comment',
-            field=models.TextField(blank=True, verbose_name='Комментарий к снятию'),
+            model_name="task",
+            name="removal_comment",
+            field=models.TextField(blank=True, verbose_name="Комментарий к снятию"),
         ),
         migrations.AddField(
-            model_name='task',
-            name='removal_reason',
-            field=models.CharField(blank=True, choices=[('customer_cancelled', 'Отменена заказчиком'), ('moderation', 'Снята модератором'), ('deadline_passed', 'Истёк дедлайн'), ('no_executors', 'Не нашлось исполнителей'), ('other', 'Другое')], max_length=32, verbose_name='Причина снятия'),
+            model_name="task",
+            name="removal_reason",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("customer_cancelled", "Отменена заказчиком"),
+                    ("moderation", "Снята модератором"),
+                    ("deadline_passed", "Истёк дедлайн"),
+                    ("no_executors", "Не нашлось исполнителей"),
+                    ("other", "Другое"),
+                ],
+                max_length=32,
+                verbose_name="Причина снятия",
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='removed_at',
-            field=models.DateTimeField(blank=True, db_index=True, null=True, verbose_name='Дата снятия с биржи'),
+            model_name="task",
+            name="removed_at",
+            field=models.DateTimeField(
+                blank=True, db_index=True, null=True, verbose_name="Дата снятия с биржи"
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='required_course_max',
-            field=models.PositiveSmallIntegerField(blank=True, help_text='Пусто — без верхней границы', null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(6)], verbose_name='Макс. курс'),
+            model_name="task",
+            name="required_course_max",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                help_text="Пусто — без верхней границы",
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(1),
+                    django.core.validators.MaxValueValidator(6),
+                ],
+                verbose_name="Макс. курс",
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='required_course_min',
-            field=models.PositiveSmallIntegerField(blank=True, help_text='Пусто — без нижней границы', null=True, validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(6)], verbose_name='Мин. курс'),
+            model_name="task",
+            name="required_course_min",
+            field=models.PositiveSmallIntegerField(
+                blank=True,
+                help_text="Пусто — без нижней границы",
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(1),
+                    django.core.validators.MaxValueValidator(6),
+                ],
+                verbose_name="Мин. курс",
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='required_people',
-            field=models.PositiveIntegerField(default=1, validators=[django.core.validators.MinValueValidator(1)], verbose_name='Нужно исполнителей'),
+            model_name="task",
+            name="required_people",
+            field=models.PositiveIntegerField(
+                default=1,
+                validators=[django.core.validators.MinValueValidator(1)],
+                verbose_name="Нужно исполнителей",
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='required_specialty',
-            field=models.CharField(blank=True, help_text='Пусто — любая специальность', max_length=100, verbose_name='Требуемая специальность'),
+            model_name="task",
+            name="required_specialty",
+            field=models.CharField(
+                blank=True,
+                help_text="Пусто — любая специальность",
+                max_length=100,
+                verbose_name="Требуемая специальность",
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='start_date',
-            field=models.DateTimeField(blank=True, null=True, verbose_name='Начало работы'),
+            model_name="task",
+            name="start_date",
+            field=models.DateTimeField(
+                blank=True, null=True, verbose_name="Начало работы"
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='taken_at',
-            field=models.DateTimeField(blank=True, db_index=True, null=True, verbose_name='Дата заполнения мест'),
+            model_name="task",
+            name="taken_at",
+            field=models.DateTimeField(
+                blank=True,
+                db_index=True,
+                null=True,
+                verbose_name="Дата заполнения мест",
+            ),
         ),
         migrations.AddField(
-            model_name='task',
-            name='withdrawn_at',
-            field=models.DateTimeField(blank=True, db_index=True, null=True, verbose_name='Дата снятия с биржи'),
+            model_name="task",
+            name="withdrawn_at",
+            field=models.DateTimeField(
+                blank=True, db_index=True, null=True, verbose_name="Дата снятия с биржи"
+            ),
         ),
         migrations.AlterField(
-            model_name='task',
-            name='status',
-            field=models.CharField(choices=[('draft', 'Черновик'), ('published', 'Опубликована (доступна)'), ('taken', 'Все места заняты'), ('in_progress', 'В работе'), ('completed', 'Завершена'), ('withdrawn', 'Снята куратором'), ('expired', 'Истёк срок')], db_index=True, default='draft', max_length=20, verbose_name='Статус'),
+            model_name="task",
+            name="status",
+            field=models.CharField(
+                choices=[
+                    ("draft", "Черновик"),
+                    ("published", "Опубликована (доступна)"),
+                    ("taken", "Все места заняты"),
+                    ("in_progress", "В работе"),
+                    ("completed", "Завершена"),
+                    ("withdrawn", "Снята куратором"),
+                    ("expired", "Истёк срок"),
+                ],
+                db_index=True,
+                default="draft",
+                max_length=20,
+                verbose_name="Статус",
+            ),
         ),
         migrations.AddIndex(
-            model_name='task',
-            index=models.Index(fields=['status', 'published_at'], name='tasks_task_status_dbbb0a_idx'),
+            model_name="task",
+            index=models.Index(
+                fields=["status", "published_at"], name="tasks_task_status_dbbb0a_idx"
+            ),
         ),
         migrations.AddField(
-            model_name='taskassignment',
-            name='removed_by',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='removed_assignments', to=settings.AUTH_USER_MODEL, verbose_name='Кем снят'),
+            model_name="taskassignment",
+            name="removed_by",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="removed_assignments",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Кем снят",
+            ),
         ),
         migrations.AddField(
-            model_name='taskassignment',
-            name='student',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='assignments', to=settings.AUTH_USER_MODEL, verbose_name='Студент'),
+            model_name="taskassignment",
+            name="student",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                related_name="assignments",
+                to=settings.AUTH_USER_MODEL,
+                verbose_name="Студент",
+            ),
         ),
         migrations.AddField(
-            model_name='taskassignment',
-            name='task',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assignments', to='tasks.task', verbose_name='Задача'),
+            model_name="taskassignment",
+            name="task",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="assignments",
+                to="tasks.task",
+                verbose_name="Задача",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='taskassignment',
-            constraint=models.UniqueConstraint(condition=models.Q(('status__in', ['taken', 'in_progress', 'submitted', 'returned'])), fields=('task', 'student'), name='unique_active_assignment_per_student'),
+            model_name="taskassignment",
+            constraint=models.UniqueConstraint(
+                condition=models.Q(
+                    ("status__in", ["taken", "in_progress", "submitted", "returned"])
+                ),
+                fields=("task", "student"),
+                name="unique_active_assignment_per_student",
+            ),
         ),
         migrations.AddConstraint(
-            model_name='taskassignment',
-            constraint=models.CheckConstraint(condition=models.Q(('revision_count__lte', 3)), name='revision_count_max_3'),
+            model_name="taskassignment",
+            constraint=models.CheckConstraint(
+                condition=models.Q(("revision_count__lte", 3)),
+                name="revision_count_max_3",
+            ),
         ),
     ]

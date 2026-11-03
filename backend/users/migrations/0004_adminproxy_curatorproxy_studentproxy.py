@@ -5,58 +5,54 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('users', '0003_user_keycloak_id'),
+        ("users", "0003_user_keycloak_id"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='AdminProxy',
-            fields=[
-            ],
+            name="AdminProxy",
+            fields=[],
             options={
-                'verbose_name': 'Администратор',
-                'verbose_name_plural': 'Администраторы',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Администратор",
+                "verbose_name_plural": "Администраторы",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('users.user',),
+            bases=("users.user",),
             managers=[
-                ('objects', django.contrib.auth.models.UserManager()),
+                ("objects", django.contrib.auth.models.UserManager()),
             ],
         ),
         migrations.CreateModel(
-            name='CuratorProxy',
-            fields=[
-            ],
+            name="CuratorProxy",
+            fields=[],
             options={
-                'verbose_name': 'Куратор',
-                'verbose_name_plural': 'Кураторы',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Куратор",
+                "verbose_name_plural": "Кураторы",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('users.user',),
+            bases=("users.user",),
             managers=[
-                ('objects', django.contrib.auth.models.UserManager()),
+                ("objects", django.contrib.auth.models.UserManager()),
             ],
         ),
         migrations.CreateModel(
-            name='StudentProxy',
-            fields=[
-            ],
+            name="StudentProxy",
+            fields=[],
             options={
-                'verbose_name': 'Студент',
-                'verbose_name_plural': 'Студенты',
-                'proxy': True,
-                'indexes': [],
-                'constraints': [],
+                "verbose_name": "Студент",
+                "verbose_name_plural": "Студенты",
+                "proxy": True,
+                "indexes": [],
+                "constraints": [],
             },
-            bases=('users.user',),
+            bases=("users.user",),
             managers=[
-                ('objects', django.contrib.auth.models.UserManager()),
+                ("objects", django.contrib.auth.models.UserManager()),
             ],
         ),
     ]

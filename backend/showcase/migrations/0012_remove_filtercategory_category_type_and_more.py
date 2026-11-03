@@ -5,39 +5,74 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0011_alter_project_curator'),
+        ("showcase", "0011_alter_project_curator"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='filtercategory',
-            name='category_type',
+            model_name="filtercategory",
+            name="category_type",
         ),
         migrations.AlterField(
-            model_name='project',
-            name='campus',
-            field=models.ForeignKey(blank=True, limit_choices_to={'category__name': 'Корпус'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='projects_as_campus', to='showcase.filteroption', verbose_name='Корпус'),
+            model_name="project",
+            name="campus",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"category__name": "Корпус"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="projects_as_campus",
+                to="showcase.filteroption",
+                verbose_name="Корпус",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='courses',
-            field=models.ManyToManyField(blank=True, limit_choices_to={'category__name': 'Курс'}, related_name='projects_as_course', to='showcase.filteroption', verbose_name='Курсы студентов'),
+            model_name="project",
+            name="courses",
+            field=models.ManyToManyField(
+                blank=True,
+                limit_choices_to={"category__name": "Курс"},
+                related_name="projects_as_course",
+                to="showcase.filteroption",
+                verbose_name="Курсы студентов",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='difficulty',
-            field=models.ForeignKey(blank=True, limit_choices_to={'category__name': 'Сложность'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='projects_as_difficulty', to='showcase.filteroption', verbose_name='Сложность'),
+            model_name="project",
+            name="difficulty",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"category__name": "Сложность"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="projects_as_difficulty",
+                to="showcase.filteroption",
+                verbose_name="Сложность",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='specialties',
-            field=models.ManyToManyField(blank=True, limit_choices_to={'category__name': 'Специальность'}, related_name='projects_as_specialty', to='showcase.filteroption', verbose_name='Специальности'),
+            model_name="project",
+            name="specialties",
+            field=models.ManyToManyField(
+                blank=True,
+                limit_choices_to={"category__name": "Специальность"},
+                related_name="projects_as_specialty",
+                to="showcase.filteroption",
+                verbose_name="Специальности",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='theme',
-            field=models.ForeignKey(blank=True, limit_choices_to={'category__name': 'Тематика'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='projects_as_theme', to='showcase.filteroption', verbose_name='Тематика'),
+            model_name="project",
+            name="theme",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"category__name": "Тематика"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="projects_as_theme",
+                to="showcase.filteroption",
+                verbose_name="Тематика",
+            ),
         ),
     ]

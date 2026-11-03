@@ -5,7 +5,7 @@ from rest_framework.views import exception_handler
 
 def api_exception_handler(exc, context):
     if isinstance(exc, ValidationError):
-        return Response({'error': exc.messages}, status=400)
+        return Response({"error": exc.messages}, status=400)
     if isinstance(exc, PermissionDenied):
-        return Response({'error': str(exc)}, status=403)
+        return Response({"error": str(exc)}, status=403)
     return exception_handler(exc, context)

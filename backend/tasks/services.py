@@ -6,7 +6,6 @@ from django.utils import timezone
 
 from .models import Task, TaskAssignment
 
-
 MAX_REVISIONS = 3
 
 
@@ -15,28 +14,28 @@ def is_curator_of(user, task) -> bool:
 
 
 def check_student_matches(student, task) -> tuple[bool, str]:
-    profile = getattr(student, 'student_profile', None)
+    profile = getattr(student, "student_profile", None)
     if profile is None:
-        return False, 'У пользователя нет профиля студента'
+        return False, "У пользователя нет профиля студента"
 
     if task.required_course_min and profile.course < task.required_course_min:
-        return False, f'Требуется курс не ниже {task.required_course_min}'
+        return False, f"Требуется курс не ниже {task.required_course_min}"
     if task.required_course_max and profile.course > task.required_course_max:
-        return False, f'Требуется курс не выше {task.required_course_max}'
+        return False, f"Требуется курс не выше {task.required_course_max}"
     if task.required_specialty and profile.specialty != task.required_specialty:
-        return False, f'Требуется специальность «{task.required_specialty}»'
+        return False, f"Требуется специальность «{task.required_specialty}»"
 
-    return True, ''
+    return True, ""
 
 
 def _require_student(assignment, user):
     if assignment.student_id != user.id:
-        raise PermissionDenied('Это не ваша запись на задачу')
+        raise PermissionDenied("Это не ваша запись на задачу")
 
 
 def _require_curator(assignment, user):
     if not is_curator_of(user, assignment.task):
-        raise PermissionDenied('Только куратор задачи может выполнить это действие')
+        raise PermissionDenied("Только куратор задачи может выполнить это действие")
 
 
 @transaction.atomic
@@ -44,24 +43,31 @@ def take_task(task_id: int, student) -> TaskAssignment:
     task = Task.objects.select_for_update().get(pk=task_id)
 
     if task.status != Task.Status.PUBLISHED:
-        raise ValidationError('Задача недоступна для взятия')
+        raise ValidationError("Задача недоступна для взятия")
     if task.filled_people >= task.required_people:
-        raise ValidationError('Свободных мест нет')
+        raise ValidationError("Свободных мест нет")
 
     ok, reason = check_student_matches(student, task)
     if not ok:
         raise ValidationError(reason)
 
-    Task.objects.filter(pk=task_id).update(filled_people=F('filled_people') + 1)
-    task.refresh_from_db(fields=['filled_people', 'required_people', 'status'])
+    Task.objects.filter(pk=task_id).update(filled_people=F("filled_people") + 1)
+    task.refresh_from_db(fields=["filled_people", "required_people", "status"])
 
     assignment = TaskAssignment.objects.create(
-        task=task, student=student, status=TaskAssignment.Status.TAKEN,
+        task=task,
+        student=student,
+        status=TaskAssignment.Status.TAKEN,
     )
-    
-    if task.filled_people >= task.required_people and task.status == Task.Status.PUBLISHED:
+
+    if (
+        task.filled_people >= task.required_people
+        and task.status == Task.Status.PUBLISHED
+    ):
         task.transition_to(
-            Task.Status.TAKEN, by=student, comment='Все места заняты',
+            Task.Status.TAKEN,
+            by=student,
+            comment="Все места заняты",
         )
 
     return assignment
@@ -70,23 +76,24 @@ def take_task(task_id: int, student) -> TaskAssignment:
 @transaction.atomic
 def start_work(assignment_id: int, student) -> TaskAssignment:
     assignment = (
-        TaskAssignment.objects
-        .select_for_update()
-        .select_related('task')
+        TaskAssignment.objects.select_for_update()
+        .select_related("task")
         .get(pk=assignment_id)
     )
     _require_student(assignment, student)
 
     assignment.transition_to(
-        TaskAssignment.Status.IN_PROGRESS, by=student,
-        comment='Студент приступил к работе',
+        TaskAssignment.Status.IN_PROGRESS,
+        by=student,
+        comment="Студент приступил к работе",
     )
 
     task = assignment.task
     if task.status == Task.Status.TAKEN:
         task.transition_to(
-            Task.Status.IN_PROGRESS, by=student,
-            comment='Первый исполнитель приступил',
+            Task.Status.IN_PROGRESS,
+            by=student,
+            comment="Первый исполнитель приступил",
         )
 
     return assignment
@@ -97,42 +104,46 @@ def submit_work(assignment_id: int, student) -> TaskAssignment:
     assignment = TaskAssignment.objects.select_for_update().get(pk=assignment_id)
     _require_student(assignment, student)
     return assignment.transition_to(
-        TaskAssignment.Status.SUBMITTED, by=student,
-        comment='Отправлено на проверку',
+        TaskAssignment.Status.SUBMITTED,
+        by=student,
+        comment="Отправлено на проверку",
     )
 
 
 @transaction.atomic
-def return_for_revision(assignment_id: int, curator, comment: str = '') -> TaskAssignment:
+def return_for_revision(
+    assignment_id: int, curator, comment: str = ""
+) -> TaskAssignment:
     assignment = (
-        TaskAssignment.objects
-        .select_for_update()
-        .select_related('task')
+        TaskAssignment.objects.select_for_update()
+        .select_related("task")
         .get(pk=assignment_id)
     )
     _require_curator(assignment, curator)
 
     if assignment.revision_count >= MAX_REVISIONS:
-        raise ValidationError(f'Лимит возвратов исчерпан ({MAX_REVISIONS})')
+        raise ValidationError(f"Лимит возвратов исчерпан ({MAX_REVISIONS})")
 
     return assignment.transition_to(
-        TaskAssignment.Status.RETURNED, by=curator, comment=comment,
+        TaskAssignment.Status.RETURNED,
+        by=curator,
+        comment=comment,
     )
 
 
 @transaction.atomic
 def accept_work(assignment_id: int, curator) -> TaskAssignment:
     assignment = (
-        TaskAssignment.objects
-        .select_for_update()
-        .select_related('task')
+        TaskAssignment.objects.select_for_update()
+        .select_related("task")
         .get(pk=assignment_id)
     )
     _require_curator(assignment, curator)
 
     assignment.transition_to(
-        TaskAssignment.Status.COMPLETED, by=curator,
-        comment='Работа принята',
+        TaskAssignment.Status.COMPLETED,
+        by=curator,
+        comment="Работа принята",
     )
 
     task = assignment.task
@@ -144,40 +155,45 @@ def accept_work(assignment_id: int, curator) -> TaskAssignment:
     ).exists()
     if not still_open and task.status in (Task.Status.IN_PROGRESS, Task.Status.TAKEN):
         task.transition_to(
-            Task.Status.COMPLETED, by=curator,
-            comment='Все исполнители приняты',
+            Task.Status.COMPLETED,
+            by=curator,
+            comment="Все исполнители приняты",
         )
 
     return assignment
 
 
 @transaction.atomic
-def remove_assignment_by_curator(assignment_id: int, curator, reason: str) -> TaskAssignment:
+def remove_assignment_by_curator(
+    assignment_id: int, curator, reason: str
+) -> TaskAssignment:
     if not reason:
-        raise ValidationError('Укажите причину снятия')
+        raise ValidationError("Укажите причину снятия")
 
     assignment = (
-        TaskAssignment.objects
-        .select_for_update()
-        .select_related('task')
+        TaskAssignment.objects.select_for_update()
+        .select_related("task")
         .get(pk=assignment_id)
     )
     _require_curator(assignment, curator)
 
     assignment.transition_to(
         TaskAssignment.Status.REMOVED_BY_CURATOR,
-        by=curator, reason=reason, comment=reason,
+        by=curator,
+        reason=reason,
+        comment=reason,
     )
 
     Task.objects.filter(pk=assignment.task_id).update(
-        filled_people=Greatest(F('filled_people') - 1, 0)
+        filled_people=Greatest(F("filled_people") - 1, 0)
     )
     task = Task.objects.select_for_update().get(pk=assignment.task_id)
 
     if task.status == Task.Status.TAKEN:
         task.transition_to(
-            Task.Status.PUBLISHED, by=curator,
-            comment='Освободилось место после снятия',
+            Task.Status.PUBLISHED,
+            by=curator,
+            comment="Освободилось место после снятия",
         )
     elif task.status == Task.Status.IN_PROGRESS:
         has_active = task.assignments.filter(
@@ -189,8 +205,9 @@ def remove_assignment_by_curator(assignment_id: int, curator, reason: str) -> Ta
         ).exists()
         if not has_active:
             task.transition_to(
-                Task.Status.PUBLISHED, by=curator,
-                comment='Не осталось работающих исполнителей',
+                Task.Status.PUBLISHED,
+                by=curator,
+                comment="Не осталось работающих исполнителей",
             )
 
     return assignment
@@ -205,7 +222,8 @@ def expire_outdated_tasks() -> int:
         deadline__lt=now,
     ):
         task.transition_to(
-            Task.Status.EXPIRED, comment='Истёк срок',
+            Task.Status.EXPIRED,
+            comment="Истёк срок",
         )
         count += 1
     return count

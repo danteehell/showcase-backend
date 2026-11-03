@@ -5,44 +5,94 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0004_remove_project_category_remove_project_course_years_and_more'),
+        (
+            "showcase",
+            "0004_remove_project_category_remove_project_course_years_and_more",
+        ),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='filtercategory',
-            name='type',
+            model_name="filtercategory",
+            name="type",
         ),
         migrations.AddField(
-            model_name='filtercategory',
-            name='category_type',
-            field=models.CharField(blank=True, choices=[('theme', 'Тематика'), ('specialty', 'Специальность'), ('course', 'Курс'), ('campus', 'Корпус'), ('difficulty', 'Сложность'), ('partner', 'Партнёр')], max_length=20, null=True),
+            model_name="filtercategory",
+            name="category_type",
+            field=models.CharField(
+                blank=True,
+                choices=[
+                    ("theme", "Тематика"),
+                    ("specialty", "Специальность"),
+                    ("course", "Курс"),
+                    ("campus", "Корпус"),
+                    ("difficulty", "Сложность"),
+                    ("partner", "Партнёр"),
+                ],
+                max_length=20,
+                null=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='campus',
-            field=models.ForeignKey(blank=True, limit_choices_to={'category__category_type': 'campus'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='projects_as_campus', to='showcase.filteroption', verbose_name='Корпус'),
+            model_name="project",
+            name="campus",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"category__category_type": "campus"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="projects_as_campus",
+                to="showcase.filteroption",
+                verbose_name="Корпус",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='courses',
-            field=models.ManyToManyField(blank=True, limit_choices_to={'category__category_type': 'course'}, related_name='projects_as_course', to='showcase.filteroption', verbose_name='Курсы студентов'),
+            model_name="project",
+            name="courses",
+            field=models.ManyToManyField(
+                blank=True,
+                limit_choices_to={"category__category_type": "course"},
+                related_name="projects_as_course",
+                to="showcase.filteroption",
+                verbose_name="Курсы студентов",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='difficulty',
-            field=models.ForeignKey(blank=True, limit_choices_to={'category__category_type': 'difficulty'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='projects_as_difficulty', to='showcase.filteroption', verbose_name='Сложность'),
+            model_name="project",
+            name="difficulty",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"category__category_type": "difficulty"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="projects_as_difficulty",
+                to="showcase.filteroption",
+                verbose_name="Сложность",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='specialties',
-            field=models.ManyToManyField(blank=True, limit_choices_to={'category__category_type': 'specialty'}, related_name='projects_as_specialty', to='showcase.filteroption', verbose_name='Специальности'),
+            model_name="project",
+            name="specialties",
+            field=models.ManyToManyField(
+                blank=True,
+                limit_choices_to={"category__category_type": "specialty"},
+                related_name="projects_as_specialty",
+                to="showcase.filteroption",
+                verbose_name="Специальности",
+            ),
         ),
         migrations.AlterField(
-            model_name='project',
-            name='theme',
-            field=models.ForeignKey(blank=True, limit_choices_to={'category__category_type': 'theme'}, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='projects_as_theme', to='showcase.filteroption', verbose_name='Тематика'),
+            model_name="project",
+            name="theme",
+            field=models.ForeignKey(
+                blank=True,
+                limit_choices_to={"category__category_type": "theme"},
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="projects_as_theme",
+                to="showcase.filteroption",
+                verbose_name="Тематика",
+            ),
         ),
     ]

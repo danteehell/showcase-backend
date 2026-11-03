@@ -10,28 +10,32 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
-from pathlib import Path
-from django.urls import reverse_lazy
 import os
-from dotenv import load_dotenv   
+from pathlib import Path
+
+from django.templatetags.static import static
+from django.urls import reverse_lazy
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
-load_dotenv(BASE_DIR / '.env') 
+load_dotenv(BASE_DIR / ".env")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 'yes')
+DEBUG = os.getenv("DEBUG", "False").lower() in ("true", "1", "yes")
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
-
+CORS_ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
+CORS_ALLOW_CREDENTIALS = True
 # Application definition
 
 INSTALLED_APPS = [
@@ -50,18 +54,27 @@ INSTALLED_APPS = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
-    'EXCEPTION_HANDLER': 'tasks.exceptions.api_exception_handler',
-    'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated'],
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.SessionAuthentication', # Теперь используем сессии (Cookies)
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
+    "EXCEPTION_HANDLER": "tasks.exceptions.api_exception_handler",
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework.authentication.SessionAuthentication",  # Теперь используем сессии (Cookies)
     ),
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "30/minute",
+        "user": "1000/day",
+    },
 }
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -69,7 +82,6 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
-CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = "backend.urls"
 
@@ -90,11 +102,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
-
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -106,121 +113,107 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = "users.User"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
     },
-    {
-        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
-    },
-    {
-        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
-    },
+    {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
-
 LANGUAGE_CODE = "ru"
-
 TIME_ZONE = "Europe/Moscow"
-
 USE_I18N = True
-
 USE_TZ = True
 
 
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [
-    Path(__file__).resolve().parent.parent / "static",
+    BASE_DIR / "backend" / "static",
 ]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-from django.templatetags.static import static
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 
 UNFOLD = {
     "SITE_TITLE": "Центр проектной деятельности",
     "SITE_HEADER": "Управление проектами",
     "SITE_URL": "/",
-    "SITE_LOGO": lambda request: static("images/logo.svg"), 
+    "SITE_LOGO": lambda request: static("images/logo.svg"),
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
-    "THEME": "light", 
-    
+    "THEME": "light",
     "SIDEBAR": {
-            "show_search": True,
-            "show_all_applications": False, 
-            "navigation": [
-                {
-                    "title": "Витрина проектов",
-                    "separator": True,
-                    "items": [
-                        {
-                            "title": "Проекты",
-                            "icon": "folder", 
-                            "link": reverse_lazy("admin:showcase_project_changelist"),
-                        },
-                        {
-                            "title": "Партнёры",
-                            "icon": "handshake",
-                            "link": reverse_lazy("admin:showcase_partner_changelist"),
-                        },
-                        {
-                            "title": "Фильтры",
-                            "icon": "filter_alt",
-                            "link": reverse_lazy("admin:showcase_filtercategory_changelist"),
-                        },
-                    ],
-                },
-                {
-                    "title": "Биржа задач",
-                    "separator": True,
-                    "items": [
-                        {
-                            "title": "Задачи",
-                            "icon": "task",
-                            "link": reverse_lazy("admin:tasks_task_changelist"),
-                        },
-                        {
-                            "title": "Категории задач",
-                            "icon": "category",
-                            "link": reverse_lazy("admin:tasks_taskcategory_changelist"),
-                        },
-                    ],
-                },
-                                {
-                    "title": "Пользователи",
-                    "separator": True,
-                    "items": [
-                        {
-                            "title": "Студенты",
-                            "icon": "school", 
-                            "link": reverse_lazy("admin:users_studentproxy_changelist"),
-                        },
-                        {
-                            "title": "Кураторы",
-                            "icon": "person", 
-                            "link": reverse_lazy("admin:users_curatorproxy_changelist"),
-                        },
-                        {
-                            "title": "Администраторы",
-                            "icon": "admin_panel_settings",
-                            "link": reverse_lazy("admin:users_adminproxy_changelist"),
-                        },
-                    ],
-                },
-            ],
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": "Витрина проектов",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Проекты",
+                        "icon": "folder",
+                        "link": reverse_lazy("admin:showcase_project_changelist"),
+                    },
+                    {
+                        "title": "Партнёры",
+                        "icon": "handshake",
+                        "link": reverse_lazy("admin:showcase_partner_changelist"),
+                    },
+                    {
+                        "title": "Фильтры",
+                        "icon": "filter_alt",
+                        "link": reverse_lazy(
+                            "admin:showcase_filtercategory_changelist"
+                        ),
+                    },
+                ],
+            },
+            {
+                "title": "Биржа задач",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Задачи",
+                        "icon": "task",
+                        "link": reverse_lazy("admin:tasks_task_changelist"),
+                    },
+                    {
+                        "title": "Категории задач",
+                        "icon": "category",
+                        "link": reverse_lazy("admin:tasks_taskcategory_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "Пользователи",
+                "separator": True,
+                "items": [
+                    {
+                        "title": "Студенты",
+                        "icon": "school",
+                        "link": reverse_lazy("admin:users_studentproxy_changelist"),
+                    },
+                    {
+                        "title": "Кураторы",
+                        "icon": "person",
+                        "link": reverse_lazy("admin:users_curatorproxy_changelist"),
+                    },
+                    {
+                        "title": "Администраторы",
+                        "icon": "admin_panel_settings",
+                        "link": reverse_lazy("admin:users_adminproxy_changelist"),
+                    },
+                ],
+            },
+        ],
     },
     "COLORS": {
         "primary": {
@@ -249,14 +242,10 @@ UNFOLD = {
             "900": "15 23 42",
             "950": "2 6 23",
         },
-        "success": {
-            "500": "0 214 129",
-        },
-        "danger": {
-            "500": "255 82 103",
-        },
-        "warning": {
-            "500": "253 153 40",
-        }
+        "success": {"500": "0 214 129"},
+        "danger": {"500": "255 82 103"},
+        "warning": {"500": "253 153 40"},
     },
 }
+
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0009_alter_project_courses_alter_project_internship_and_more'),
+        ("showcase", "0009_alter_project_courses_alter_project_internship_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='curator',
-            name='patronymic',
-            field=models.CharField(blank=True, max_length=200, null=True, verbose_name='Отчество'),
+            model_name="curator",
+            name="patronymic",
+            field=models.CharField(
+                blank=True, max_length=200, null=True, verbose_name="Отчество"
+            ),
         ),
     ]

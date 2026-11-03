@@ -1,14 +1,14 @@
-from django.urls import path, include
-from rest_framework import routers
-from .views import ProjectListAPI, ProjectViewSet, FiltersViewSet, PartnerViewSet
+from django.urls import include, path
+from rest_framework.routers import SimpleRouter
 
-router = routers.DefaultRouter()
-router.register(r'projects-viewset', ProjectViewSet, basename='project-detail')
-router.register(r'filters', FiltersViewSet, basename='filters')
-router.register(r'partners', PartnerViewSet, basename='partners')
+from .views import FiltersViewSet, PartnerViewSet, ProjectListAPI, ProjectViewSet
+
+router = SimpleRouter()
+router.register(r"projects-viewset", ProjectViewSet, basename="project-detail")
+router.register(r"filters", FiltersViewSet, basename="filters")
+router.register(r"partners", PartnerViewSet, basename="partners")
 
 urlpatterns = [
-    path('projects/', ProjectListAPI.as_view(), name='project-list'),
-    path('projects/<int:id>/', ProjectViewSet.as_view({'get': 'retrieve'}), name='project-detail'),
-    path('', include(router.urls)),
+    path("projects/", ProjectListAPI.as_view(), name="project-list"),
+    path("", include(router.urls)),
 ]

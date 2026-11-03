@@ -5,15 +5,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0005_remove_filtercategory_type_and_more'),
+        ("showcase", "0005_remove_filtercategory_type_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='project',
-            name='shedule',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, to='showcase.scheduleitem', verbose_name='Занятия'),
+            model_name="project",
+            name="shedule",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                to="showcase.scheduleitem",
+                verbose_name="Занятия",
+            ),
         ),
     ]

@@ -4,13 +4,12 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('showcase', '0012_remove_filtercategory_category_type_and_more'),
+        ("showcase", "0012_remove_filtercategory_category_type_and_more"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='CourseYear',
+            name="CourseYear",
         ),
     ]
