@@ -1,7 +1,7 @@
 import json
 import os
 import random
-
+from django.utils import timezone
 import django
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "backend.settings")
@@ -15,6 +15,7 @@ from showcase.models import (
     Partner,
     Project,
     ProjectEnrollment,
+    ProjectListItem,
     ScheduleItem,
 )
 from tasks.models import Task, TaskCategory
@@ -391,7 +392,68 @@ def run():
         project.specialties.set(random.sample(specialties, k=random.randint(1, 3)))
         project.courses.add(random.choice(courses))
         count += 1
+    print("=== ДОБАВЛЕНИЕ ТЕХНОЛОГИЙ (через ProjectListItem) ===")
+    tech_names = ["React", "TypeScript", "Python", "Django", "PostgreSQL", "Docker", "Figma", "C++", "Arduino", "Kotlin", "Swift", "Unity", "Unreal Engine"]
+    
+    all_projects = Project.objects.all()
+    for proj in all_projects:
+        # Выбираем от 2 до 5 случайных технологий для каждого проекта
+        selected_techs = random.sample(tech_names, k=random.randint(2, 5))
+        for tech in selected_techs:
+            ProjectListItem.objects.create(
+                project=proj,
+                type='technology', # <--- Тот самый тип
+                text=tech
+            )
+            
+    # Добавим пару "задач" (tasks) в описание, чтобы блок "Что предстоит делать" не был пустым
+    tasks_texts = ["Разработка интерфейсов", "Создание макетов", "Работа с API", "Тестирование", "Участие в командных встречах", "Защита результата"]
+    for proj in all_projects:
+        selected_tasks = random.sample(tasks_texts, k=random.randint(2, 4))
+        for task in selected_tasks:
+            ProjectListItem.objects.create(
+                project=proj,
+                type='tasks', # <--- Тип "Основные задачи"
+                text=task
+            )
 
+
+    print("=== ГЕНЕРАЦИЯ ЗАДАЧ ДЛЯ БИРЖИ ===")
+    task_cats = ["Frontend", "Backend", "Дизайн", "Аналитика", "Тестирование", "DevOps"]
+    task_categories = [TaskCategory.objects.create(name=c) for c in task_cats]
+
+    task_templates = [
+        ("Разработка главной страницы", "Необходимо сверстать адаптивный интерфейс по макету в Figma."),
+        ("Настройка базы данных", "Спроектировать ER-диаграмму и написать миграции для PostgreSQL."),
+        ("Создание API эндпоинтов", "Разработать REST API на Django REST Framework для мобильного приложения."),
+        ("Юзабилити-тестирование", "Провести тестирование прототипа, собрать обратную связь и составить отчет."),
+        ("Настройка CI/CD", "Написать Dockerfile и настроить GitHub Actions для автоматической сборки."),
+        ("Сборка макета устройства", "Спаять прототип на макетной плате и запрограммировать контроллер."),
+        ("Анализ конкурентов", "Собрать данные о конкурентах и визуализировать их в виде графиков."),
+        ("Написание документации", "Составить подробное руководство пользователя и API документацию."),
+    ]
+
+    task_count = 0
+    for proj in all_projects[:15]:
+        for _ in range(3):
+            title, short_desc = random.choice(task_templates)
+            
+            task = Task.objects.create(
+                project=proj,
+                curator=proj.curator, 
+                category=random.choice(task_categories),
+                title=title,
+                short_description=short_desc,
+                description=f"Подробное описание задачи: {short_desc}\n\nТребования к исполнителю: ответственность, умение работать в команде.",
+                difficulty=random.choice(Task.Difficulty.values),
+                points=random.randint(5, 50),
+                status=Task.Status.PUBLISHED, 
+                required_people=random.randint(1, 3),
+                deadline=timezone.now() + timezone.timedelta(days=random.randint(10, 60))
+            )
+            task_count += 1
+
+    print(f"Создано задач для биржи: {task_count}")
     print(f"=== ГОТОВО! Сгенерировано проектов: {count} ===")
     print(f"Кураторы (пароль '123456'): создано {len(curators)} шт.")
     print(f"Студенты (пароль '123456'): создано {len(students)} шт.")

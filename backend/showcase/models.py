@@ -181,9 +181,8 @@ class Project(models.Model):
 
 class ProjectListItem(models.Model):
     TYPES = [
-        ("requirement", "Требование"),
-        ("feature", "Особенность"),
-        ("motivation", "Мотивация"),
+        ("tasks", "Основные задачи"),
+        ("technologies", "Технологии"), 
     ]
     project = models.ForeignKey(
         Project,
@@ -192,15 +191,14 @@ class ProjectListItem(models.Model):
         verbose_name="Проект",
     )
     type = models.CharField(max_length=50, choices=TYPES, verbose_name="Тип элемента")
-    position = models.PositiveIntegerField(default=0, verbose_name="Позиция")
     text = models.TextField(verbose_name="Текст")
 
     class Meta:
-        verbose_name = "Элемент списка проекта"
-        verbose_name_plural = "Элементы списков проектов"
+        verbose_name = "Дополнительная информация о проекте"
+        verbose_name_plural = "Дополнительная информация о проектах"
 
     def __str__(self):
-        return f"{self.project.title} - {self.get_type_display()} ({self.position})"
+        return f"{self.project.title} - {self.get_type_display()}"
 
 
 class ProjectEnrollment(models.Model):

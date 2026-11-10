@@ -11,8 +11,7 @@ admin.site.site_header = "Управление проектами"
 class ProjectListItemInline(TabularInline):
     model = ProjectListItem
     extra = 1
-    fields = ("type", "position", "text")
-    ordering = ("position",)
+    fields = ("type", "text")    
 
 
 class FilterOptionInline(TabularInline):
