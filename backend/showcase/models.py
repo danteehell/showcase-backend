@@ -213,7 +213,12 @@ class ProjectEnrollment(models.Model):
     class Meta:
         verbose_name = "Заявка на проект"
         verbose_name_plural = "Заявки на проекты"
-        unique_together = ("project", "student")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["student"],
+                name="unique_project_enrollment_per_student",
+            )
+        ]
 
     def __str__(self):
         return f"{self.student} -> {self.project}"

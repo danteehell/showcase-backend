@@ -9,6 +9,10 @@ from users.permissions import IsAdminOrCurator
 from .models import *
 from .serializers import *
 
+from django.db import transaction, IntegrityError
+from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+
 
 class ProjectListAPI(views.APIView):
     permission_classes = [AllowAny]
@@ -17,7 +21,9 @@ class ProjectListAPI(views.APIView):
         projects = Project.objects.select_related(
             "theme", "campus", "difficulty", "partner", "curator"
         ).prefetch_related(
-            "specialties", "courses"
+            "specialties",
+            "courses",
+            "list_items",
         ).all()
 
         search = request.GET.get("search")
@@ -164,3 +170,109 @@ class PartnerViewSet(viewsets.ReadOnlyModelViewSet):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
         return Response({"data": serializer.data})
+
+class ProjectEnrollmentAPI(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if not request.user.is_student():
+            return Response(
+                {"error": "Только студенты могут просматривать свою запись"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        enrollment = ProjectEnrollment.objects.filter(
+            student=request.user
+        ).select_related("project").first()
+
+        if not enrollment:
+            return Response(
+                {"error": "Вы не записаны ни на один проект"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        serializer = ProjectSerializer(enrollment.project)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        if not request.user.is_student():
+            return Response(
+                {"error": "Только студенты могут записываться на проекты"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        project_id = request.data.get("project_id")
+
+        if not project_id:
+            return Response(
+                {"error": "Необходимо указать project_id"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            project_id = int(project_id)
+            if project_id <= 0:
+                raise ValueError
+        except (ValueError, TypeError):
+            return Response(
+                {"error": "Некорректный ID проекта"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            with transaction.atomic():
+                project = Project.objects.select_for_update().get(
+                    id=project_id
+                )
+
+                if not project.is_active:
+                    return Response(
+                        {"error": "Проект недоступен для записи"},
+                        status=status.HTTP_409_CONFLICT,
+                    )
+
+                if project.spots_remaining is None or project.spots_remaining <= 0:
+                    return Response(
+                        {"error": "На проекте нет свободных мест"},
+                        status=status.HTTP_409_CONFLICT,
+                    )
+
+                if ProjectEnrollment.objects.filter(
+                    student=request.user
+                ).exists():
+                    return Response(
+                        {"error": "Вы уже записаны на проект"},
+                        status=status.HTTP_409_CONFLICT,
+                    )
+
+                enrollment = ProjectEnrollment.objects.create(
+                    project=project,
+                    student=request.user,
+                )
+
+                project.spots_remaining -= 1
+                project.save(update_fields=["spots_remaining"])
+
+        except Project.DoesNotExist:
+            return Response(
+                {"error": "Проект не найден"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        except IntegrityError:
+            return Response(
+                {"error": "Вы уже записаны на проект"},
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        return Response(
+            {
+                "message": "Вы успешно записались на проект",
+                "enrollment_id": enrollment.id,
+                "project_id": project.id,
+                "project_title": project.title,
+                "created_at": enrollment.created_at,
+            },
+            status=status.HTTP_201_CREATED,
+        )
