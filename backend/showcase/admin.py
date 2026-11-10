@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import reverse
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from unfold.admin import ModelAdmin, TabularInline
 
 from .models import *
@@ -176,16 +176,22 @@ class ProjectAdmin(ModelAdmin):
         if not enrollments:
             return "Пока никто не записался"
 
-        html = '<ul style="margin: 0; padding-left: 20px;">'
+        items = []
         for enrollment in enrollments:
             student = enrollment.student
             url = reverse("admin:users_user_change", args=[student.id])
-            # Исправлено: убрали student.username, так как его больше нет
             name = student.get_full_name() or student.email
-            html += f'<li style="margin-bottom: 5px;"><a href="{url}" style="color: #677BFD; font-weight: bold;">{name}</a> ({student.email})</li>'
+            
+            items.append(
+                format_html(
+                    '<li style="margin-bottom: 5px;"><a href="{}" style="color: #677BFD; font-weight: bold;">{}</a> ({})</li>',
+                    url,
+                    name,
+                    student.email
+                )
+            )
 
-        html += "</ul>"
-        return format_html(html)
+        return format_html('<ul style="margin: 0; padding-left: 20px;">{}</ul>', format_html_join('', '{}', ((item,) for item in items)))
 
 
 admin.site.register(Partner, PartnerAdmin)

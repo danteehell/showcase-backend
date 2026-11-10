@@ -53,7 +53,7 @@ class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
 
-    list_display = ("email", "display_full_name", "role", "is_active")
+    list_display = ("email", "display_full_name", "role", "enrolled_project", "is_active")
     list_filter = ("role", "is_staff", "is_superuser", "is_active")
     search_fields = ("email", "first_name", "last_name", "middle_name")
     ordering = ("-date_joined",)
@@ -78,20 +78,30 @@ class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
     def display_full_name(self, obj):
         return obj.get_full_name()
 
+    @admin.display(description="Проект")
+    def enrolled_project(self, obj):
+        if obj.role != "student":
+            return "-"
+        enrollment = obj.project_enrollments.first()
+        if enrollment:
+            return enrollment.project.title
+        return "Не записан"
+
     def get_inlines(self, request, obj):
         return [StudentProfileInline, CuratorProfileInline]
-
 
 @admin.register(StudentProxy)
 class StudentAdmin(CustomUserAdmin):
     list_display = (
         "email",
         "display_full_name",
+        "enrolled_project",
         "display_course",
         "display_specialty",
         "is_active",
     )
     list_filter = ("student_profile__course", "student_profile__specialty", "is_active")
+    readonly_fields = ("enrolled_project",)
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(role="student")
@@ -106,6 +116,7 @@ class StudentAdmin(CustomUserAdmin):
                 "Персональная информация",
                 {"fields": ("last_name", "first_name", "middle_name")},
             ),
+            ("Проект", {"fields": ("enrolled_project",)}),
             ("Права в системе", {"fields": ("role", "is_active")}),
         )
 
