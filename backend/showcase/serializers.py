@@ -55,7 +55,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = [
-            'id', 'title', 'theme', 'specialties', 'campus', 'courses', 'day_of_week',
+            'id', 'title', 'theme', 'specialties', 'campus', 'courses', 
             'difficulty', 'partner', 'curator', 'internship', 'spots_remaining', 
             'short_description', 'long_description', 'is_active', 'created_at', 'updated_at',
             'tasks', 'technologies'
@@ -67,19 +67,10 @@ class ProjectSerializer(serializers.ModelSerializer):
         return None
 
     def get_tasks(self, obj):
-        return [
-            item.text
-            for item in obj.list_items.all()
-            if item.type == "tasks"
-        ]
+        return [item.text for item in obj.list_items.all() if item.type == 'tasks']
 
     def get_technologies(self, obj):
-        return [
-            item.text
-            for item in obj.list_items.all()
-            if item.type == "technologies"
-        ]
-
+        return [item.text for item in obj.list_items.all() if item.type == 'technologies']
 
 class FilterOptionSerializer(serializers.ModelSerializer):
     class Meta:
