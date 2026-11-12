@@ -382,7 +382,6 @@ def run():
             difficulty=random.choice(diffs),
             partner=random.choice(partners),
             curator=random.choice(curators),
-            shedule=random.choice(schedules),
             internship=random.choice([True, False]),
             spots_remaining=random.randint(1, 10),
             is_active=True,

@@ -1,17 +1,122 @@
-from rest_framework import views, viewsets
-from rest_framework.permissions import AllowAny
+from rest_framework import views, viewsets, status
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from django.db.models import Q
+from django.db import transaction, IntegrityError
+from django.core.exceptions import ValidationError
 
 from users.models import Specialty
 from users.permissions import IsAdminOrCurator
-
 from .models import *
 from .serializers import *
 
-from django.db import transaction, IntegrityError
-from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
+
+class ProjectApplicationViewSet(viewsets.ModelViewSet):
+    serializer_class = ProjectApplicationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_student():
+            return ProjectApplication.objects.filter(applicant=user).order_by('-created_at')
+        return ProjectApplication.objects.all().order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(applicant=self.request.user)
+
+    def get_permissions(self):
+        if self.action in ['approve', 'reject', 'update', 'partial_update', 'destroy']:
+            return [IsAdminOrCurator()]
+        return [IsAuthenticated()]
+
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        application = self.get_object()
+
+        if application.status != ProjectApplication.Status.PENDING:
+            return Response(
+                {"error": "Можно одобрять только заявки на рассмотрении."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            with transaction.atomic():
+                project = Project.objects.create(
+                    title=application.title,
+                    theme=application.theme,
+                    campus=application.campus,
+                    location_address=application.location_address,
+                    difficulty=application.difficulty,
+                    partner=application.partner,
+                    curator=application.curator,
+                    internship=application.internship,
+                    spots_remaining=application.total_spots,
+                    short_description=application.short_description,
+                    long_description=application.long_description,
+                    is_active=True
+                )
+
+                project.specialties.set(application.specialties.all())
+                project.courses.set(application.courses.all())
+
+                if isinstance(application.tasks, list):
+                    for task_text in application.tasks:
+                        ProjectListItem.objects.create(project=project, type='tasks', text=task_text)
+                
+                if isinstance(application.technologies, list):
+                    for tech_text in application.technologies:
+                        ProjectListItem.objects.create(project=project, type='technologies', text=tech_text)
+
+                application.status = ProjectApplication.Status.APPROVED
+                application.save()
+
+            return Response({
+                "message": "Заявка одобрена, проект успешно создан.",
+                "project_id": project.id
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Ошибка при создании проекта: {str(e)}"}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'])
+    def reject(self, request, pk=None):
+        application = self.get_object()
+
+        if application.status != ProjectApplication.Status.PENDING:
+            return Response(
+                {"error": "Можно отклонять только заявки на рассмотрении."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reason_choice = request.data.get('rejection_reason_choice')
+        reason_text = request.data.get('rejection_reason_text', '')
+
+        if not reason_choice:
+            return Response(
+                {"error": "Необходимо указать причину отклонения (rejection_reason_choice)."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if reason_choice == ProjectApplication.RejectionReason.OTHER and not reason_text:
+            return Response(
+                {"error": "Для причины 'Другая' необходимо добавить комментарий (rejection_reason_text)."}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        application.status = ProjectApplication.Status.REJECTED
+        application.rejection_reason_choice = reason_choice
+        application.rejection_reason_text = reason_text
+        
+        try:
+            application.full_clean()
+            application.save()
+            return Response({"message": "Заявка отклонена."}, status=status.HTTP_200_OK)
+        except ValidationError as e:
+            return Response({"error": e.message_dict}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProjectListAPI(views.APIView):
@@ -21,9 +126,7 @@ class ProjectListAPI(views.APIView):
         projects = Project.objects.select_related(
             "theme", "campus", "difficulty", "partner", "curator"
         ).prefetch_related(
-            "specialties",
-            "courses",
-            "list_items",
+            "specialties", "courses", "list_items",
         ).all()
 
         search = request.GET.get("search")
@@ -171,6 +274,7 @@ class PartnerViewSet(viewsets.ReadOnlyModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response({"data": serializer.data})
 
+
 class ProjectEnrollmentAPI(views.APIView):
     permission_classes = [IsAuthenticated]
 
@@ -192,7 +296,6 @@ class ProjectEnrollmentAPI(views.APIView):
             )
 
         serializer = ProjectSerializer(enrollment.project)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -222,9 +325,7 @@ class ProjectEnrollmentAPI(views.APIView):
 
         try:
             with transaction.atomic():
-                project = Project.objects.select_for_update().get(
-                    id=project_id
-                )
+                project = Project.objects.select_for_update().get(id=project_id)
 
                 if not project.is_active:
                     return Response(
@@ -238,9 +339,7 @@ class ProjectEnrollmentAPI(views.APIView):
                         status=status.HTTP_409_CONFLICT,
                     )
 
-                if ProjectEnrollment.objects.filter(
-                    student=request.user
-                ).exists():
+                if ProjectEnrollment.objects.filter(student=request.user).exists():
                     return Response(
                         {"error": "Вы уже записаны на проект"},
                         status=status.HTTP_409_CONFLICT,
