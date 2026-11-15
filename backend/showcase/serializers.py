@@ -5,10 +5,11 @@ from users.models import Specialty
 
 class ProjectApplicationSerializer(serializers.ModelSerializer):
     applicant_email = serializers.ReadOnlyField(source='applicant.email')
-    theme_name = serializers.ReadOnlyField(source='theme.name')
-    campus_name = serializers.ReadOnlyField(source='campus.name')
-    partner_name = serializers.ReadOnlyField(source='partner.name')
-    curator_name = serializers.CharField(source='curator.get_full_name', read_only=True)
+    
+    theme_name = serializers.CharField(source='theme.name', default=None)
+    campus_name = serializers.CharField(source='campus.name', default=None)
+    partner_name = serializers.CharField(source='partner.name', default=None)
+    curator_name = serializers.SerializerMethodField()
     
     specialties = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Specialty.objects.all(), required=False
@@ -25,13 +26,18 @@ class ProjectApplicationSerializer(serializers.ModelSerializer):
             'title', 'theme', 'theme_name', 'specialties', 'campus', 'campus_name', 
             'location_address', 'courses', 'difficulty', 'partner', 'partner_name', 
             'curator', 'curator_name', 'internship', 'total_spots', 
-            'short_description', 'long_description', 'tasks', 'technologies', 
+            'short_description', 'long_description', 'list_items', 
             'created_at', 'updated_at'
         ]
         read_only_fields = [
             'applicant', 'status', 'rejection_reason_choice', 'rejection_reason_text', 
             'created_at', 'updated_at'
         ]
+
+    def get_curator_name(self, obj):
+        if obj.curator:
+            return obj.curator.get_full_name()
+        return None
 
 class ProjectListItemSerializer(serializers.ModelSerializer):
     type = serializers.CharField(source='get_type_display')

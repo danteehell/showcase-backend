@@ -18,10 +18,13 @@ class ProjectApplicationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        if not user.is_authenticated:
+            return ProjectApplication.objects.none()
+            
         if user.is_student():
             return ProjectApplication.objects.filter(applicant=user).order_by('-created_at')
         return ProjectApplication.objects.all().order_by('-created_at')
-
+    
     def perform_create(self, serializer):
         serializer.save(applicant=self.request.user)
 
