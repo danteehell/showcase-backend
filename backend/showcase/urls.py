@@ -7,12 +7,14 @@ from .views import (
     ProjectListAPI,
     ProjectViewSet,
     ProjectEnrollmentAPI,
+    ProjectApplicationViewSet,
 )
 
 router = SimpleRouter()
 router.register(r"projects-viewset", ProjectViewSet, basename="project-detail")
 router.register(r"filters", FiltersViewSet, basename="filters")
 router.register(r"partners", PartnerViewSet, basename="partners")
+router.register(r"applications", ProjectApplicationViewSet, basename="project-application")
 
 urlpatterns = [
     path("projects/", ProjectListAPI.as_view(), name="project-list"),
