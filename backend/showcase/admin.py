@@ -16,12 +16,6 @@ class ProjectListItemInline(TabularInline):
     fields = ("type", "text")
 
 
-class ProjectApplicationListItemInline(TabularInline):
-    model = ProjectApplicationListItem
-    extra = 1
-    fields = ("type", "text")
-
-
 class FilterOptionInline(TabularInline):
     model = FilterOption
     extra = 1
@@ -70,15 +64,11 @@ class FilterOptionAdmin(ModelAdmin):
 class ProjectApplicationAdmin(ModelAdmin):
     list_display = ("id", "title", "applicant", "status", "created_at")
     list_filter = ("status", "created_at")
-    search_fields = ("title", "short_description", "applicant__email")
+    search_fields = ("title", "relevance", "applicant__email")
     
     readonly_fields = ("created_at", "updated_at", "approve_button", "reject_button", "revert_button")
-    inlines = [ProjectApplicationListItemInline]
     
-    autocomplete_fields = (
-        "applicant", "theme", "campus", "difficulty", 
-        "partner", "curator", "specialties", "courses"
-    )
+    autocomplete_fields = ("applicant", "specialties")
     
     fieldsets = (
         ("Статус", {"fields": ("status", "applicant", "approve_button", "reject_button", "revert_button")}),
@@ -86,10 +76,8 @@ class ProjectApplicationAdmin(ModelAdmin):
             "fields": ("rejection_reason_choice", "rejection_reason_text"),
             "classes": ("collapse",), 
         }),
-        ("Основная информация", {"fields": ("title", "short_description", "long_description")}),
-        ("Локация и фильтры", {"fields": ("theme", "specialties", "campus", "location_address", "courses", "difficulty")}),
-        ("Партнёр и куратор", {"fields": ("partner", "curator")}),
-        ("Детали", {"fields": ("internship", "total_spots")}),
+        ("Информация о проекте", {"fields": ("title", "relevance", "problem", "goal", "tasks", "expected_result")}),
+        ("Требования", {"fields": ("specialties",)}),
         ("Системное", {"fields": ("created_at", "updated_at"), "classes": ("collapse",)}),
     )
 
@@ -159,28 +147,17 @@ class ProjectApplicationAdmin(ModelAdmin):
             with transaction.atomic():
                 project = Project.objects.create(
                     title=application.title,
-                    theme=application.theme,
-                    campus=application.campus,
-                    location_address=application.location_address,
-                    difficulty=application.difficulty,
-                    partner=application.partner,
-                    curator=application.curator,
-                    internship=application.internship,
-                    spots_remaining=application.total_spots,
-                    short_description=application.short_description,
-                    long_description=application.long_description,
+                    short_description=application.relevance[:150],
+                    relevance=application.relevance,
+                    problem=application.problem,
+                    goal=application.goal,
+                    tasks=application.tasks,
+                    expected_result=application.expected_result,
+                    spots_remaining=10,
                     is_active=True
                 )
                 
                 project.specialties.set(application.specialties.all())
-                project.courses.set(application.courses.all())
-
-                for item in application.list_items.all():
-                    ProjectListItem.objects.create(
-                        project=project,
-                        type=item.type,
-                        text=item.text
-                    )
 
                 application.status = ProjectApplication.Status.APPROVED
                 application.save()
@@ -226,8 +203,7 @@ class ProjectApplicationAdmin(ModelAdmin):
             with transaction.atomic():
                 if application.status == ProjectApplication.Status.APPROVED:
                     project = Project.objects.filter(
-                        title=application.title, 
-                        curator=application.curator
+                        title=application.title
                     ).order_by('-created_at').first()
                     
                     if project:
@@ -244,6 +220,7 @@ class ProjectApplicationAdmin(ModelAdmin):
 
         return redirect(reverse('admin:showcase_projectapplication_change', args=[object_id]))
 
+
 @admin.register(Project)
 class ProjectAdmin(ModelAdmin):
     list_display = (
@@ -253,7 +230,7 @@ class ProjectAdmin(ModelAdmin):
         "is_active", "internship", "difficulty", "campus", "partner", "curator", "specialties", 
     )
     search_fields = (
-        "title", "short_description", "long_description",
+        "title", "short_description", "relevance", "problem", "goal",
     )
     autocomplete_fields = (
         "theme", "campus", "difficulty", "partner", "specialties", "courses", "curator",
@@ -267,7 +244,10 @@ class ProjectAdmin(ModelAdmin):
 
     fieldsets = (
         ("Основная информация", {
-            "fields": ("title", "short_description", "long_description")
+            "fields": ("title", "short_description")
+        }),
+        ("Детали проекта", {
+            "fields": ("relevance", "problem", "goal", "tasks", "expected_result")
         }),
         ("Локация и фильтры", {
             "fields": ("theme", "specialties", "campus", "location_address", "courses", "difficulty")

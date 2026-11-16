@@ -6,16 +6,8 @@ from users.models import Specialty
 class ProjectApplicationSerializer(serializers.ModelSerializer):
     applicant_email = serializers.ReadOnlyField(source='applicant.email')
     
-    theme_name = serializers.CharField(source='theme.name', default=None)
-    campus_name = serializers.CharField(source='campus.name', default=None)
-    partner_name = serializers.CharField(source='partner.name', default=None)
-    curator_name = serializers.SerializerMethodField()
-    
     specialties = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Specialty.objects.all(), required=False
-    )
-    courses = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=FilterOption.objects.filter(category__name='Курс'), required=False
     )
 
     class Meta:
@@ -23,21 +15,13 @@ class ProjectApplicationSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'applicant', 'applicant_email', 'status', 
             'rejection_reason_choice', 'rejection_reason_text',
-            'title', 'theme', 'theme_name', 'specialties', 'campus', 'campus_name', 
-            'location_address', 'courses', 'difficulty', 'partner', 'partner_name', 
-            'curator', 'curator_name', 'internship', 'total_spots', 
-            'short_description', 'long_description', 'list_items', 
-            'created_at', 'updated_at'
+            'title', 'relevance', 'problem', 'goal', 'tasks', 'expected_result',
+            'specialties', 'created_at', 'updated_at'
         ]
         read_only_fields = [
             'applicant', 'status', 'rejection_reason_choice', 'rejection_reason_text', 
             'created_at', 'updated_at'
         ]
-
-    def get_curator_name(self, obj):
-        if obj.curator:
-            return obj.curator.get_full_name()
-        return None
 
 class ProjectListItemSerializer(serializers.ModelSerializer):
     type = serializers.CharField(source='get_type_display')
@@ -55,25 +39,21 @@ class ProjectSerializer(serializers.ModelSerializer):
     difficulty = serializers.CharField(source='difficulty.name', default=None)
     partner = serializers.CharField(source='partner.name', default=None)
     
-    tasks = serializers.SerializerMethodField()
     technologies = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
         fields = [
-            'id', 'title', 'theme', 'specialties', 'campus', 'courses', 
+            'id', 'title', 'short_description', 'relevance', 'problem', 'goal', 
+            'tasks', 'expected_result', 'theme', 'specialties', 'campus', 'courses', 
             'difficulty', 'partner', 'curator', 'internship', 'spots_remaining', 
-            'short_description', 'long_description', 'is_active', 'created_at', 'updated_at',
-            'tasks', 'technologies'
+            'is_active', 'created_at', 'updated_at', 'technologies'
         ]
         
     def get_curator(self, obj):
         if obj.curator:
             return obj.curator.get_full_name()
         return None
-
-    def get_tasks(self, obj):
-        return [item.text for item in obj.list_items.all() if item.type == 'tasks']
 
     def get_technologies(self, obj):
         return [item.text for item in obj.list_items.all() if item.type == 'technologies']

@@ -38,52 +38,37 @@ class ProjectApplicationViewSet(viewsets.ModelViewSet):
         application = self.get_object()
 
         if application.status != ProjectApplication.Status.PENDING:
-            return Response(
-                {"error": "Можно одобрять только заявки на рассмотрении."}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "Можно одобрять только заявки на рассмотрении."}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             with transaction.atomic():
                 project = Project.objects.create(
                     title=application.title,
-                    theme=application.theme,
-                    campus=application.campus,
-                    location_address=application.location_address,
-                    difficulty=application.difficulty,
-                    partner=application.partner,
-                    curator=application.curator,
-                    internship=application.internship,
-                    spots_remaining=application.total_spots,
-                    short_description=application.short_description,
-                    long_description=application.long_description,
+                    short_description=application.relevance[:150], # Берем кусок актуальности для карточки
+                    relevance=application.relevance,
+                    problem=application.problem,
+                    goal=application.goal,
+                    tasks=application.tasks,
+                    expected_result=application.expected_result,
+                    spots_remaining=0,
                     is_active=True
                 )
 
                 project.specialties.set(application.specialties.all())
-                project.courses.set(application.courses.all())
 
-                if isinstance(application.tasks, list):
-                    for task_text in application.tasks:
-                        ProjectListItem.objects.create(project=project, type='tasks', text=task_text)
-                
-                if isinstance(application.technologies, list):
-                    for tech_text in application.technologies:
-                        ProjectListItem.objects.create(project=project, type='technologies', text=tech_text)
+                if application.tasks:
+                    ProjectListItem.objects.create(
+                        project=project, 
+                        type='tasks', 
+                        text=application.tasks
+                    )
 
                 application.status = ProjectApplication.Status.APPROVED
                 application.save()
 
-            return Response({
-                "message": "Заявка одобрена, проект успешно создан.",
-                "project_id": project.id
-            }, status=status.HTTP_200_OK)
-
+            return Response({"message": "Заявка одобрена, проект создан.", "project_id": project.id}, status=status.HTTP_200_OK)
         except Exception as e:
-            return Response(
-                {"error": f"Ошибка при создании проекта: {str(e)}"}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     @action(detail=True, methods=['post'])
     def reject(self, request, pk=None):

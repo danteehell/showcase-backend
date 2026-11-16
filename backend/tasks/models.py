@@ -64,7 +64,7 @@ class Task(models.Model):
     project = models.ForeignKey(
         "showcase.Project",
         on_delete=models.CASCADE,
-        related_name="tasks",
+        related_name="project_tasks",
         verbose_name="Проект",
     )
     curator = models.ForeignKey(
