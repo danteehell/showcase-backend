@@ -1,7 +1,9 @@
+
 import json
 import os
 import random
 from datetime import timedelta
+from pathlib import Path
 
 import django
 from django.db import transaction
@@ -14,26 +16,73 @@ from django.contrib.auth import get_user_model
 from showcase.models import (
     FilterCategory,
     FilterOption,
-    Partner,
     Project,
     ProjectEnrollment,
     ProjectListItem,
-    ProjectApplication, # Добавили новую модель
+    ProjectApplication,
 )
 from tasks.models import Task, TaskCategory, TaskAssignment
-from users.models import CuratorProfile, Department, Specialty, StudentProfile
+from users.models import (
+    CuratorProfile,
+    Department,
+    Faculty,
+    Group,
+    Partner,
+    PartnerRepresentative,
+    Specialty,
+    StudentProfile,
+)
 
 User = get_user_model()
 
-MALE_NAMES = ["Александр", "Дмитрий", "Максим", "Сергей", "Андрей", "Алексей", "Иван", "Михаил", "Егор", "Артем"]
-FEMALE_NAMES = ["Анна", "Мария", "Елена", "Дарья", "Анастасия", "Екатерина", "Ольга", "Наталья", "Виктория", "Ксения"]
-LAST_NAMES = ["Иванов", "Смирнов", "Кузнецов", "Попов", "Соколов", "Лебедев", "Козлов", "Новиков", "Морозов", "Волков"]
-MIDDLE_NAMES_M = ["Александрович", "Дмитриевич", "Сергеевич", "Андреевич", "Алексеевич", "Иванович", "Михайлович"]
-MIDDLE_NAMES_F = ["Александровна", "Дмитриевна", "Сергеевна", "Андреевна", "Алексеевна", "Ивановна", "Михайловна"]
+MALE_NAMES = [
+    "Александр", "Дмитрий", "Максим", "Сергей", "Андрей",
+    "Алексей", "Иван", "Михаил", "Егор", "Артем",
+]
+
+FEMALE_NAMES = [
+    "Анна", "Мария", "Елена", "Дарья", "Анастасия",
+    "Екатерина", "Ольга", "Наталья", "Виктория", "Ксения",
+]
+
+LAST_NAMES = [
+    "Иванов", "Смирнов", "Кузнецов", "Попов", "Соколов",
+    "Лебедев", "Козлов", "Новиков", "Морозов", "Волков",
+]
+
+MIDDLE_NAMES_M = [
+    "Александрович", "Дмитриевич", "Сергеевич",
+    "Андреевич", "Алексеевич", "Иванович", "Михайлович",
+]
+
+MIDDLE_NAMES_F = [
+    "Александровна", "Дмитриевна", "Сергеевна",
+    "Андреевна", "Алексеевна", "Ивановна", "Михайловна",
+]
+
+
+def create_user(email, role, index):
+    is_female = random.choice([True, False])
+
+    user = User.objects.create(
+        email=email,
+        role=role,
+        first_name=random.choice(FEMALE_NAMES if is_female else MALE_NAMES),
+        last_name=random.choice(LAST_NAMES) + ("а" if is_female else ""),
+        middle_name=random.choice(
+            MIDDLE_NAMES_F if is_female else MIDDLE_NAMES_M
+        ),
+    )
+    user.set_password("123456")
+    user.save()
+
+    return user
+
 
 @transaction.atomic
 def run():
     print("=== ОЧИСТКА СТАРЫХ ДАННЫХ ===")
+
     TaskAssignment.objects.all().delete()
     ProjectEnrollment.objects.all().delete()
     ProjectApplication.objects.all().delete()
@@ -41,130 +90,317 @@ def run():
     Task.objects.all().delete()
     TaskCategory.objects.all().delete()
     Project.objects.all().delete()
+
     FilterOption.objects.all().delete()
     FilterCategory.objects.all().delete()
-    Partner.objects.all().delete()
+
+    PartnerRepresentative.objects.all().delete()
+    StudentProfile.objects.all().delete()
+    CuratorProfile.objects.all().delete()
+
+    Group.objects.all().delete()
     Specialty.objects.all().delete()
+    Faculty.objects.all().delete()
     Department.objects.all().delete()
+
+    Partner.objects.all().delete()
     User.objects.filter(is_superuser=False).delete()
 
-    print("=== СОЗДАНИЕ СПРАВОЧНИКОВ ===")
-    dep_names = ["Кафедра ИТ", "Кафедра Информационной безопасности", "Кафедра Дизайна", "Кафедра Робототехники", "Кафедра Экономики"]
-    departments = [Department.objects.create(name=n) for n in dep_names]
+    print("=== СОЗДАНИЕ ФАКУЛЬТЕТОВ ===")
+
+    faculties = [
+        Faculty.objects.create(name=name)
+        for name in [
+            "Информационные технологии",
+            "Дизайн",
+            "Машиностроение",
+        ]
+    ]
+
+    print("=== СОЗДАНИЕ КАФЕДР ===")
+
+    departments = [
+        Department.objects.create(name=name)
+        for name in [
+            "Кафедра ИТ",
+            "Кафедра информационной безопасности",
+            "Кафедра дизайна",
+            "Кафедра робототехники",
+            "Кафедра экономики",
+        ]
+    ]
+
+    print("=== СОЗДАНИЕ СПЕЦИАЛЬНОСТЕЙ ===")
 
     specialties_data = [
-        ("09.03.01", "Информатика и вычислительная техника"),
-        ("09.03.02", "Программная инженерия"),
-        ("09.03.03", "Прикладная информатика"),
-        ("09.03.04", "Программное обеспечение игровой индустрии"),
-        ("54.03.01", "Дизайн"),
-        ("15.03.01", "Машиностроение"),
+        ("09.03.01", "Информатика и вычислительная техника", faculties[0]),
+        ("09.03.02", "Программная инженерия", faculties[0]),
+        ("09.03.03", "Прикладная информатика", faculties[0]),
+        ("09.03.04", "Программное обеспечение игровой индустрии", faculties[0]),
+        ("54.03.01", "Дизайн", faculties[1]),
+        ("15.03.01", "Машиностроение", faculties[2]),
     ]
-    specialties = [Specialty.objects.create(code=c, name=n) for c, n in specialties_data]
+
+    specialties = [
+        Specialty.objects.create(code=code, name=name, faculty=faculty)
+        for code, name, faculty in specialties_data
+    ]
+
+    print("=== СОЗДАНИЕ ГРУПП ===")
+
+    groups = []
+
+    for specialty in specialties:
+        for year in range(1, 5):
+            groups.append(
+                Group.objects.create(
+                    name=f"{specialty.code}-{year}А",
+                    specialty=specialty,
+                    year=year,
+                )
+            )
+
+    print("=== СОЗДАНИЕ ПАРТНЕРОВ ===")
+
+    partners_data = [
+        {
+            "name": "Яндекс",
+            "short_name": "Yandex",
+            "website": "https://yandex.ru",
+            "email": "partners@yandex.ru",
+            "phone": "+7 495 739-70-00",
+            "contact_person": "Отдел сотрудничества",
+            "internship": True,
+        },
+        {
+            "name": "VK",
+            "short_name": "VK",
+            "website": "https://vk.com",
+            "email": "partners@vk.company",
+            "phone": "+7 495 725-63-57",
+            "contact_person": "Отдел партнерских программ",
+            "internship": True,
+        },
+        {
+            "name": "Сбер",
+            "short_name": "Сбер",
+            "website": "https://sber.ru",
+            "email": "partners@sber.ru",
+            "phone": "+7 495 500-55-50",
+            "contact_person": "Отдел взаимодействия с вузами",
+            "internship": True,
+        },
+        {
+            "name": "Ростелеком",
+            "short_name": "РТК",
+            "website": "https://rt.ru",
+            "email": "partners@rt.ru",
+            "phone": "+7 800 100-08-00",
+            "contact_person": "Отдел партнерских проектов",
+            "internship": True,
+        },
+        {
+            "name": "Астра",
+            "short_name": "Astra",
+            "website": "https://astralinux.ru",
+            "email": "partners@astralinux.ru",
+            "phone": "+7 495 665-70-00",
+            "contact_person": "Отдел сотрудничества",
+            "internship": False,
+        },
+        {
+            "name": "Т-Банк",
+            "short_name": "Т-Банк",
+            "website": "https://www.tbank.ru",
+            "email": "partners@tbank.ru",
+            "phone": "+7 800 333-33-33",
+            "contact_person": "Отдел партнерских программ",
+            "internship": True,
+        },
+    ]
+
+    partners = [
+        Partner.objects.create(
+            **data,
+            is_curator_contact=False,
+            additional_contact=None,
+        )
+        for data in partners_data
+    ]
+
+    print("=== СОЗДАНИЕ ПОЛЬЗОВАТЕЛЕЙ ===")
+
+    curators = []
+
+    for i in range(1, 6):
+        curator = create_user(
+            email=f"curator{i}@mospolytech.ru",
+            role="curator",
+            index=i,
+        )
+
+        CuratorProfile.objects.create(
+            user=curator,
+            department=random.choice(departments),
+        )
+
+        curators.append(curator)
+
+    students = []
+
+    for i in range(1, 11):
+        student = create_user(
+            email=f"student{i}@mospolytech.ru",
+            role="student",
+            index=i,
+        )
+
+        group = random.choice(groups)
+
+        StudentProfile.objects.create(
+            user=student,
+            course=group.year,
+            specialty=group.specialty,
+            group=group,
+        )
+
+        students.append(student)
+
+    print("=== СОЗДАНИЕ ПРЕДСТАВИТЕЛЕЙ ПАРТНЕРОВ ===")
+
+    for i, partner in enumerate(partners, start=1):
+        representative = create_user(
+            email=f"partner{i}@mospolytech.ru",
+            role="partner",
+            index=i,
+        )
+
+        PartnerRepresentative.objects.create(
+            user=representative,
+            partner=partner,
+        )
 
     print("=== СОЗДАНИЕ ФИЛЬТРОВ ===")
+
     cat_theme = FilterCategory.objects.create(name="Тематика")
     cat_campus = FilterCategory.objects.create(name="Корпус")
     cat_course = FilterCategory.objects.create(name="Курс")
     cat_diff = FilterCategory.objects.create(name="Сложность")
 
-    campuses = [FilterOption.objects.create(category=cat_campus, name=n) for n in ["Автозаводская", "Прянишникова", "Большая Семеновская"]]
-    courses = [FilterOption.objects.create(category=cat_course, name=n) for n in ["1 курс", "2 курс", "3 курс", "4 курс"]]
-    diffs = [FilterOption.objects.create(category=cat_diff, name=n) for n in ["Низкая", "Средняя", "Высокая"]]
-    partners = [Partner.objects.create(name=n) for n in ["Яндекс", "VK", "Сбер", "Ростелеком", "Астра", "Тинькофф"]]
-  
+    campuses = [
+        FilterOption.objects.create(category=cat_campus, name=name)
+        for name in [
+            "Автозаводская",
+            "Прянишникова",
+            "Большая Семеновская",
+        ]
+    ]
 
-    with open("filters.json", "r", encoding="utf-8") as f:
-        filters_data = json.load(f)
+    courses = [
+        FilterOption.objects.create(category=cat_course, name=f"{year} курс")
+        for year in range(1, 5)
+    ]
 
-    theme_options = [FilterOption.objects.create(category=cat_theme, name=t["value"]) for t in filters_data["filters"][0]["values"]]
+    difficulties = [
+        FilterOption.objects.create(category=cat_diff, name=name)
+        for name in ["Низкая", "Средняя", "Высокая"]
+    ]
 
-    print("=== СОЗДАНИЕ ПОЛЬЗОВАТЕЛЕЙ ===")
-    curators = []
-    for i in range(1, 6):
-        is_female = random.choice([True, False])
-        c = User.objects.create(
-            email=f"curator{i}@mospolytech.ru", role="curator",
-            first_name=random.choice(FEMALE_NAMES if is_female else MALE_NAMES),
-            last_name=random.choice(LAST_NAMES) + ("а" if is_female else ""),
-            middle_name=random.choice(MIDDLE_NAMES_F if is_female else MIDDLE_NAMES_M),
-        )
-        c.set_password("123456")
-        c.save()
-        CuratorProfile.objects.create(user=c, department=random.choice(departments))
-        curators.append(c)
+    filters_path = Path(__file__).with_name("filters.json")
 
-    students = []
-    for i in range(1, 11):
-        is_female = random.choice([True, False])
-        s = User.objects.create(
-            email=f"student{i}@mospolytech.ru", role="student",
-            first_name=random.choice(FEMALE_NAMES if is_female else MALE_NAMES),
-            last_name=random.choice(LAST_NAMES) + ("а" if is_female else ""),
-            middle_name=random.choice(MIDDLE_NAMES_F if is_female else MIDDLE_NAMES_M),
-        )
-        s.set_password("123456")
-        s.save()
-        StudentProfile.objects.create(user=s, course=random.randint(1, 4), specialty=random.choice(specialties))
-        students.append(s)
+    with filters_path.open("r", encoding="utf-8") as file:
+        filters_data = json.load(file)
+
+    theme_options = [
+        FilterOption.objects.create(category=cat_theme, name=item["value"])
+        for item in filters_data["filters"][0]["values"]
+    ]
 
     print("=== ГЕНЕРАЦИЯ ПРОЕКТОВ ===")
-    project_pool = {
-        "IT": [("Разработка платформы для стажировок", "Создание веб-сервиса."), ("Мобильное приложение", "Разработка кроссплатформенного приложения."), ("Система распознавания лиц", "Использование CV.")],
-        "Дизайн": [("Редизайн личного кабинета", "Создание новых макетов в Figma."), ("Фирменный стиль клуба", "Создание логотипа.")],
-        "Мультимедиа": [("Видеоподкаст", "Организация съемок."), ("3D-модели для музея", "Оцифровка экспонатов.")],
-        "Технология": [("Умный дом", "Сборка IoT-устройства."), ("Расчет корпуса", "CAD-моделирование.")],
-        "Транспорт": [("Беспилотный ровер", "Сборка шасси."), ("Логистика кампуса", "Разработка аренды самокатов.")],
-        "Химбиотех": [("Биосенсор для воды", "Лабораторный прототип.")],
-        "Научные проекты": [("Анализ данных", "Построение ML-моделей.")],
-        "Соцтех": [("Волонтерские проекты", "Сайт для НКО.")],
-    }
+
+    project_templates = [
+        ("Разработка платформы для стажировок", "Создание веб-сервиса."),
+        ("Мобильное приложение", "Разработка кроссплатформенного приложения."),
+        ("Система распознавания лиц", "Использование компьютерного зрения."),
+        ("Редизайн личного кабинета", "Создание новых макетов в Figma."),
+        ("Фирменный стиль клуба", "Разработка визуальной идентичности."),
+        ("Видеоподкаст", "Организация съемок и монтажа."),
+        ("3D-модели для музея", "Оцифровка экспонатов."),
+        ("Умный дом", "Разработка IoT-устройства."),
+        ("Расчет корпуса", "CAD-моделирование."),
+        ("Беспилотный ровер", "Разработка автономного устройства."),
+        ("Логистика кампуса", "Оптимизация перемещения по кампусу."),
+        ("Биосенсор для воды", "Разработка лабораторного прототипа."),
+        ("Анализ данных", "Построение моделей машинного обучения."),
+        ("Волонтерская платформа", "Разработка сайта для НКО."),
+    ]
 
     projects = []
+
     for _ in range(20):
-        theme = random.choice(theme_options)
-        title, short_desc = random.choice(project_pool.get(theme.name, [("Проект", "Описание.")]))
-        
+        title, short_description = random.choice(project_templates)
+
         project = Project.objects.create(
-            title=title, 
-            short_description=short_desc, 
-            relevance=short_desc,
-            problem="Проблема проекта",
-            goal="Цель проекта",
-            tasks="Задача 1\nЗадача 2",
-            expected_result="Готовый продукт",
-            theme=theme,
-            campus=random.choice(campuses), 
-            difficulty=random.choice(diffs), 
+            title=title,
+            short_description=short_description,
+            relevance=short_description,
+            problem="Проблема, которую необходимо решить в рамках проекта.",
+            goal="Разработка и реализация проектного решения.",
+            tasks="1. Анализ требований\n2. Разработка решения\n3. Тестирование",
+            expected_result="Работающий прототип или готовый продукт.",
+            theme=random.choice(theme_options),
+            campus=random.choice(campuses),
+            difficulty=random.choice(difficulties),
             partner=random.choice(partners),
-            curator=random.choice(curators), 
+            curator=random.choice(curators),
             internship=random.choice([True, False]),
-            spots_remaining=random.randint(1, 10), 
+            spots_remaining=random.randint(1, 10),
             is_active=True,
         )
-        project.specialties.set(random.sample(specialties, k=random.randint(1, 3)))
+
+        project.specialties.set(
+            random.sample(specialties, k=random.randint(1, 3))
+        )
+
         project.courses.add(random.choice(courses))
         projects.append(project)
 
     print("=== ГЕНЕРАЦИЯ ЗАДАЧ ДЛЯ БИРЖИ ===")
-    task_cats = ["Frontend", "Backend", "Дизайн", "Аналитика"]
-    task_categories = [TaskCategory.objects.create(name=c) for c in task_cats]
+
+    task_categories = [
+        TaskCategory.objects.create(name=name)
+        for name in ["Frontend", "Backend", "Дизайн", "Аналитика"]
+    ]
 
     tasks_to_create = []
-    for proj in projects[:10]:
+
+    for project in projects[:10]:
         for _ in range(2):
-            tasks_to_create.append(Task(
-                project=proj, curator=proj.curator, category=random.choice(task_categories),
-                title="Тестовая задача", short_description="Описание задачи", 
-                description="Полное описание задачи",
-                difficulty=random.choice(Task.Difficulty.values), points=random.randint(5, 50),
-                status=Task.Status.PUBLISHED, required_people=random.randint(1, 3),
-                deadline=timezone.now() + timedelta(days=30)
-            ))
-    
+            tasks_to_create.append(
+                Task(
+                    project=project,
+                    curator=project.curator,
+                    category=random.choice(task_categories),
+                    title="Тестовая задача",
+                    short_description="Краткое описание задачи.",
+                    description="Полное описание задачи и ожидаемый результат.",
+                    points=random.randint(5, 50),
+                    status=Task.Status.PUBLISHED,
+                    required_people=random.randint(1, 3),
+                    deadline=timezone.now() + timedelta(days=30),
+                )
+            )
+
     Task.objects.bulk_create(tasks_to_create)
 
-    print(f"=== ГОТОВО! Создано проектов: {len(projects)}, пользователей: {len(curators) + len(students)} ===")
+    print(
+        "=== ГОТОВО! "
+        f"Проектов: {len(projects)}, "
+        f"кураторов: {len(curators)}, "
+        f"студентов: {len(students)}, "
+        f"партнеров: {len(partners)} ==="
+    )
+
 
 if __name__ == "__main__":
     run()

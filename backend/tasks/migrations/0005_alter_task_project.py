@@ -7,14 +7,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('showcase', '0020_remove_project_long_description_and_more'),
-        ('tasks', '0004_alter_task_curator_alter_task_required_specialty'),
+        ("showcase", "0020_remove_project_long_description_and_more"),
+        ("tasks", "0004_alter_task_curator_alter_task_required_specialty"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='project',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='project_tasks', to='showcase.project', verbose_name='Проект'),
+            model_name="task",
+            name="project",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="project_tasks",
+                to="showcase.project",
+                verbose_name="Проект",
+            ),
         ),
     ]

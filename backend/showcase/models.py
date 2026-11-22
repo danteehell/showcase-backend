@@ -1,30 +1,17 @@
-from django.db import models
+
+from django.conf import settings
 from django.core.exceptions import ValidationError
-from backend import settings
-from users.models import Specialty
+from django.db import models
 
-
-class Partner(models.Model):
-    name = models.CharField(max_length=200, verbose_name="Партнёр")
-    short_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="Сокращенное название")
-    website = models.URLField(blank=True, null=True, verbose_name="Сайт")
-    email = models.EmailField(blank=True, null=True, verbose_name="Email")
-    phone = models.CharField(max_length=50, blank=True, null=True, verbose_name="Телефон")
-    contact_person = models.CharField(max_length=255, blank=True, null=True, verbose_name="Контактное лицо")
-    is_curator_contact = models.BooleanField(default=False, verbose_name="Куратор проекта является контактным лицом")
-    additional_contact = models.CharField(max_length=255, blank=True, null=True, verbose_name="Доп. способ связи")
-    internship = models.BooleanField(default=False, verbose_name="Стажировка")
-
-    class Meta:
-        verbose_name = "Партнёр"
-        verbose_name_plural = "Партнёры"
-
-    def __str__(self):
-        return self.name
+from users.models import Specialty, Partner
 
 
 class FilterCategory(models.Model):
-    name = models.CharField(max_length=100, verbose_name="Название категории")
+    name = models.CharField(
+        max_length=100,
+        unique=True,
+        verbose_name="Название категории",
+    )
 
     class Meta:
         verbose_name = "Категория фильтра"
@@ -41,14 +28,24 @@ class FilterOption(models.Model):
         related_name="options",
         verbose_name="Категория",
     )
-    name = models.CharField(max_length=200, verbose_name="Опция фильтра")
+    name = models.CharField(
+        max_length=200,
+        verbose_name="Опция фильтра",
+    )
 
     class Meta:
         verbose_name = "Опция фильтра"
         verbose_name_plural = "Опции фильтров"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["category", "name"],
+                name="unique_filter_option_per_category",
+            )
+        ]
 
     def __str__(self):
         return f"{self.category.name} - {self.name}"
+
 
 class ProjectApplication(models.Model):
     class Status(models.TextChoices):
@@ -64,32 +61,70 @@ class ProjectApplication(models.Model):
         OTHER = "other", "Другая причина"
 
     applicant = models.ForeignKey(
-        "users.User", on_delete=models.CASCADE,
-        related_name="project_applications", verbose_name="Заявитель"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="project_applications",
+        verbose_name="Заявитель",
     )
     status = models.CharField(
-        max_length=20, choices=Status.choices, default=Status.PENDING, verbose_name="Статус"
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        verbose_name="Статус",
     )
     rejection_reason_choice = models.CharField(
-        max_length=50, choices=RejectionReason.choices, blank=True, null=True, verbose_name="Категория отклонения"
+        max_length=50,
+        choices=RejectionReason.choices,
+        blank=True,
+        null=True,
+        verbose_name="Категория отклонения",
     )
     rejection_reason_text = models.TextField(
-        blank=True, null=True, verbose_name="Комментарий к отклонению"
+        blank=True,
+        null=True,
+        verbose_name="Комментарий к отклонению",
     )
 
-    title = models.CharField(max_length=100, verbose_name="Название проекта")
-    relevance = models.TextField(max_length=1000, verbose_name="Актуальность")
-    problem = models.TextField(max_length=1000, verbose_name="Проблема")
-    goal = models.TextField(max_length=1000, verbose_name="Цель")
-    tasks = models.TextField(max_length=1000, verbose_name="Ключевые задачи")
-    expected_result = models.TextField(max_length=1000, verbose_name="Ожидаемый продуктовый результат")
-    
+    title = models.CharField(
+        max_length=300,
+        verbose_name="Название проекта",
+    )
+    relevance = models.TextField(
+        max_length=1000,
+        verbose_name="Актуальность",
+    )
+    problem = models.TextField(
+        max_length=1000,
+        verbose_name="Проблема",
+    )
+    goal = models.TextField(
+        max_length=1000,
+        verbose_name="Цель",
+    )
+    tasks = models.TextField(
+        max_length=1000,
+        verbose_name="Ключевые задачи",
+    )
+    expected_result = models.TextField(
+        max_length=1000,
+        verbose_name="Ожидаемый продуктовый результат",
+    )
+
     specialties = models.ManyToManyField(
-        Specialty, blank=True, related_name="project_applications", verbose_name="Требуемые направления подготовки"
+        Specialty,
+        blank=True,
+        related_name="project_applications",
+        verbose_name="Требуемые направления подготовки",
     )
 
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата подачи")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата подачи",
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Дата обновления",
+    )
 
     class Meta:
         verbose_name = "Заявка на проект"
@@ -101,61 +136,141 @@ class ProjectApplication(models.Model):
 
     def clean(self):
         super().clean()
+
+        errors = {}
+
         if self.status == self.Status.REJECTED:
             if not self.rejection_reason_choice:
-                raise ValidationError({"rejection_reason_choice": "Необходимо выбрать категорию отклонения."})
-            if self.rejection_reason_choice == self.RejectionReason.OTHER and not self.rejection_reason_text:
-                raise ValidationError({"rejection_reason_text": "Так как выбрана 'Другая причина', необходимо написать комментарий."})
+                errors["rejection_reason_choice"] = (
+                    "Необходимо выбрать категорию отклонения."
+                )
+
+            if (
+                self.rejection_reason_choice == self.RejectionReason.OTHER
+                and not (self.rejection_reason_text or "").strip()
+            ):
+                errors["rejection_reason_text"] = (
+                    "Необходимо указать комментарий к отклонению."
+                )
+
+        if errors:
+            raise ValidationError(errors)
+
 
 class Project(models.Model):
-    title = models.CharField(max_length=300, verbose_name="Название проекта")
-    
-    short_description = models.TextField(blank=True, verbose_name="Короткое описание (для карточки)", null=True)
-    relevance = models.TextField(blank=True, verbose_name="Актуальность")
-    problem = models.TextField(blank=True, verbose_name="Проблема")
-    goal = models.TextField(blank=True, verbose_name="Цель")
-    tasks = models.TextField(blank=True, verbose_name="Ключевые задачи")
-    expected_result = models.TextField(blank=True, verbose_name="Ожидаемый продуктовый результат")
+    title = models.CharField(
+        max_length=300,
+        verbose_name="Название проекта",
+    )
+    short_description = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="Короткое описание (для карточки)",
+    )
+    relevance = models.TextField(
+        blank=True,
+        verbose_name="Актуальность",
+    )
+    problem = models.TextField(
+        blank=True,
+        verbose_name="Проблема",
+    )
+    goal = models.TextField(
+        blank=True,
+        verbose_name="Цель",
+    )
+    tasks = models.TextField(
+        blank=True,
+        verbose_name="Ключевые задачи",
+    )
+    expected_result = models.TextField(
+        blank=True,
+        verbose_name="Ожидаемый продуктовый результат",
+    )
 
     theme = models.ForeignKey(
-        FilterOption, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="projects_as_theme", limit_choices_to={"category__name": "Тематика"},
+        FilterOption,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects_as_theme",
+        limit_choices_to={"category__name": "Тематика"},
         verbose_name="Тематика",
     )
     specialties = models.ManyToManyField(
-        Specialty, blank=True, related_name="projects", verbose_name="Направления подготовки",
+        Specialty,
+        blank=True,
+        related_name="projects",
+        verbose_name="Направления подготовки",
     )
     campus = models.ForeignKey(
-        FilterOption, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="projects_as_campus", limit_choices_to={"category__name": "Корпус"},
-        verbose_name="Корпус",
+        FilterOption,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects_as_campus",
+        limit_choices_to={"category__name": "Локация"},
+        verbose_name="Локация",
     )
     location_address = models.CharField(
-        max_length=300, blank=True, null=True, verbose_name="Адрес (если на базе партнёра)"
+        max_length=300,
+        blank=True,
+        null=True,
+        verbose_name="Адрес",
     )
     courses = models.ManyToManyField(
-        FilterOption, blank=True, related_name="projects_as_course",
-        limit_choices_to={"category__name": "Курс"}, verbose_name="Курсы студентов",
+        FilterOption,
+        blank=True,
+        related_name="projects_as_course",
+        limit_choices_to={"category__name": "Курс"},
+        verbose_name="Курсы студентов",
     )
     difficulty = models.ForeignKey(
-        FilterOption, on_delete=models.SET_NULL, null=True, blank=True,
-        related_name="projects_as_difficulty", limit_choices_to={"category__name": "Сложность"},
+        FilterOption,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="projects_as_difficulty",
+        limit_choices_to={"category__name": "Сложность"},
         verbose_name="Сложность",
-    )
+    ) # возможно убрать сложность
     partner = models.ForeignKey(
-        "Partner", on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Партнёр",
+        Partner,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Партнёр",
     )
     curator = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
-        limit_choices_to={"role": "curator"}, related_name="curated_projects",
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        limit_choices_to={"role": "curator"},
+        related_name="curated_projects",
         verbose_name="Куратор",
     )
-    internship = models.BooleanField(default=False, verbose_name="Стажировка")
-    spots_remaining = models.PositiveIntegerField(default=0, verbose_name="Оставшиеся места")
-    
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
-    is_active = models.BooleanField(default=True, verbose_name="Доступен")
+    internship = models.BooleanField(
+        default=False,
+        verbose_name="Стажировка",
+    )
+    spots_remaining = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Квота мест",
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата создания",
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        verbose_name="Дата обновления",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Доступен",
+    )
 
     class Meta:
         verbose_name = "Проект"
@@ -163,6 +278,31 @@ class Project(models.Model):
 
     def __str__(self):
         return self.title
+
+    def clean(self):
+        super().clean()
+
+        errors = {}
+
+        expected_categories = {
+            "theme": "Тематика",
+            "campus": "Локация",
+            "difficulty": "Сложность",
+        }
+
+        for field, category_name in expected_categories.items():
+            option = getattr(self, field)
+
+            if option and option.category.name != category_name:
+                errors[field] = (
+                    f"Выберите опцию из категории «{category_name}»."
+                )
+
+        if self.curator and self.curator.role != "curator":
+            errors["curator"] = "Пользователь должен иметь роль куратора."
+
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
     def get_total_count(cls):
@@ -174,44 +314,79 @@ class Project(models.Model):
 
     @classmethod
     def get_available_count(cls):
-        return cls.objects.filter(is_active=True, spots_remaining__gt=0).count()
+        return cls.objects.filter(
+            is_active=True,
+            spots_remaining__gt=0,
+        ).count()
 
-    
+
 class BaseListItem(models.Model):
     TYPES = [
         ("tasks", "Основные задачи"),
         ("technologies", "Технологии"),
     ]
-    type = models.CharField(max_length=50, choices=TYPES, verbose_name="Тип элемента")
-    text = models.TextField(verbose_name="Текст")
+
+    type = models.CharField(
+        max_length=50,
+        choices=TYPES,
+        verbose_name="Тип элемента",
+    )
+    text = models.TextField(
+        verbose_name="Текст",
+    )
+
     class Meta:
-        abstract = True  
+        abstract = True
+
 
 class ProjectListItem(BaseListItem):
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="list_items", verbose_name="Проект"
+        Project,
+        on_delete=models.CASCADE,
+        related_name="list_items",
+        verbose_name="Проект",
     )
 
     def __str__(self):
         return f"{self.project.title} - {self.get_type_display()}"
 
+
 class ProjectEnrollment(models.Model):
     project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="enrollments", verbose_name="Проект"
+        Project,
+        on_delete=models.CASCADE,
+        related_name="enrollments",
+        verbose_name="Проект",
     )
     student = models.ForeignKey(
-        "users.User", on_delete=models.CASCADE, related_name="project_enrollments", verbose_name="Студент"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="project_enrollments",
+        limit_choices_to={"role": "student"},
+        verbose_name="Студент",
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата записи")
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name="Дата записи",
+    )
 
     class Meta:
         verbose_name = "Запись на проект"
         verbose_name_plural = "Записи на проекты"
         constraints = [
             models.UniqueConstraint(
-                fields=["student", "project"], name="unique_student_project_enrollment",
+                fields=["student", "project"],
+                name="unique_student_project_enrollment",
             )
         ]
 
     def __str__(self):
         return f"{self.student} -> {self.project}"
+
+    def clean(self):
+        super().clean()
+
+        if self.student_id and self.student.role != "student":
+            raise ValidationError(
+                {"student": "Записываться на проекты могут только студенты."}
+            )

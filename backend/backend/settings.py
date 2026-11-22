@@ -17,6 +17,8 @@ from django.templatetags.static import static
 from django.urls import reverse_lazy
 from dotenv import load_dotenv
 
+from django.utils.translation import gettext_lazy as _
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -143,78 +145,208 @@ MEDIA_ROOT = BASE_DIR / "media"
 
 UNFOLD = {
     "SITE_TITLE": "Центр проектной деятельности",
-    "SITE_HEADER": "Управление проектами",
+    "SITE_HEADER": "Центр проектной деятельности",
+    "SITE_SUBHEADER": "Административная панель",
     "SITE_URL": "/",
     "SITE_LOGO": lambda request: static("images/logo.svg"),
+    "SITE_SYMBOL": "account_tree",
     "SHOW_HISTORY": True,
-    "SHOW_VIEW_ON_SITE": True,
-    "THEME": "light",
+    "SHOW_VIEW_ON_SITE": False,
+
     "SIDEBAR": {
         "show_search": True,
         "show_all_applications": False,
         "navigation": [
             {
-                "title": "Витрина проектов",
-                "separator": True,
+                "title": _("Главная"),
+                "separator": False,
+                "collapsible": False,
                 "items": [
                     {
-                        "title": "Проекты",
-                        "icon": "folder",
-                        "link": reverse_lazy("admin:showcase_project_changelist"),
+                        "title": _("Панель управления"),
+                        "icon": "dashboard",
+                        "link": reverse_lazy("admin:index"),
                     },
+                ],
+            },
+            {
+                "title": _("Управление проектами"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
                     {
-                        "title": "Партнёры",
-                        "icon": "handshake",
-                        "link": reverse_lazy("admin:showcase_partner_changelist"),
-                    },
-                    {
-                        "title": "Фильтры",
-                        "icon": "filter_alt",
+                        "title": _("Заявки на проекты"),
+                        "icon": "assignment",
                         "link": reverse_lazy(
-                            "admin:showcase_filtercategory_changelist"
+                            "admin:showcase_projectapplication_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Все проекты"),
+                        "icon": "folder_open",
+                        "link": reverse_lazy(
+                            "admin:showcase_project_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Записи студентов"),
+                        "icon": "groups",
+                        "link": reverse_lazy(
+                            "admin:showcase_projectenrollment_changelist"
                         ),
                     },
                 ],
             },
             {
-                "title": "Биржа задач",
+                "title": _("Настройки витрины"),
                 "separator": True,
+                "collapsible": True,
                 "items": [
                     {
-                        "title": "Задачи",
-                        "icon": "task",
-                        "link": reverse_lazy("admin:tasks_task_changelist"),
+                        "title": _("Категории фильтров"),
+                        "icon": "filter_alt",
+                        "link": reverse_lazy(
+                            "admin:showcase_filtercategory_changelist"
+                        ),
                     },
                     {
-                        "title": "Категории задач",
-                        "icon": "category",
-                        "link": reverse_lazy("admin:tasks_taskcategory_changelist"),
+                        "title": _("Опции фильтров"),
+                        "icon": "tune",
+                        "link": reverse_lazy(
+                            "admin:showcase_filteroption_changelist"
+                        ),
                     },
                 ],
             },
             {
-                "title": "Пользователи",
+                "title": _("Биржа задач"),
                 "separator": True,
+                "collapsible": True,
                 "items": [
                     {
-                        "title": "Студенты",
+                        "title": _("Задачи"),
+                        "icon": "task_alt",
+                        "link": reverse_lazy(
+                            "admin:tasks_task_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Категории задач"),
+                        "icon": "category",
+                        "link": reverse_lazy(
+                            "admin:tasks_taskcategory_changelist"
+                        ),
+                    },
+                ],
+            },
+            {
+                "title": _("Партнёры и организации"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Компании-партнёры"),
+                        "icon": "business",
+                        "link": reverse_lazy(
+                            "admin:users_partner_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Связи с партнёрами"),
+                        "icon": "handshake",
+                        "link": reverse_lazy(
+                            "admin:users_partnerrepresentative_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Факультеты"),
+                        "icon": "account_balance",
+                        "link": reverse_lazy(
+                            "admin:users_faculty_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Направления подготовки"),
                         "icon": "school",
-                        "link": reverse_lazy("admin:users_studentproxy_changelist"),
+                        "link": reverse_lazy(
+                            "admin:users_specialty_changelist"
+                        ),
                     },
                     {
-                        "title": "Кураторы",
+                        "title": _("Кафедры"),
+                        "icon": "domain",
+                        "link": reverse_lazy(
+                            "admin:users_department_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Учебные группы"),
+                        "icon": "groups",
+                        "link": reverse_lazy(
+                            "admin:users_group_changelist"
+                        ),
+                    },
+                ],
+            },
+            {
+                "title": _("Пользователи"),
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Все пользователи"),
+                        "icon": "people",
+                        "link": reverse_lazy(
+                            "admin:users_user_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Студенты"),
+                        "icon": "school",
+                        "link": reverse_lazy(
+                            "admin:users_studentproxy_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Кураторы"),
                         "icon": "person",
-                        "link": reverse_lazy("admin:users_curatorproxy_changelist"),
+                        "link": reverse_lazy(
+                            "admin:users_curatorproxy_changelist"
+                        ),
                     },
                     {
-                        "title": "Администраторы",
+                        "title": _("Руководители направлений"),
+                        "icon": "supervisor_account",
+                        "link": reverse_lazy(
+                            "admin:users_directionheadproxy_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Деканы"),
+                        "icon": "account_balance",
+                        "link": reverse_lazy(
+                            "admin:users_deanproxy_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Представители партнёров"),
+                        "icon": "business_center",
+                        "link": reverse_lazy(
+                            "admin:users_partnerproxy_changelist"
+                        ),
+                    },
+                    {
+                        "title": _("Начальники ЦПД"),
                         "icon": "admin_panel_settings",
-                        "link": reverse_lazy("admin:users_adminproxy_changelist"),
+                        "link": reverse_lazy(
+                            "admin:users_adminproxy_changelist"
+                        ),
                     },
                 ],
             },
         ],
     },
+
     "COLORS": {
         "primary": {
             "50": "240 245 255",
@@ -242,10 +374,17 @@ UNFOLD = {
             "900": "15 23 42",
             "950": "2 6 23",
         },
-        "success": {"500": "0 214 129"},
-        "danger": {"500": "255 82 103"},
-        "warning": {"500": "253 153 40"},
+        "success": {
+            "500": "0 214 129",
+        },
+        "danger": {
+            "500": "255 82 103",
+        },
+        "warning": {
+            "500": "253 153 40",
+        },
     },
 }
+
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

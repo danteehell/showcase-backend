@@ -7,17 +7,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('showcase', '0017_alter_projectlistitem_options_and_more'),
+        ("showcase", "0017_alter_projectlistitem_options_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='projectenrollment',
+            name="projectenrollment",
             unique_together=set(),
         ),
         migrations.AddConstraint(
-            model_name='projectenrollment',
-            constraint=models.UniqueConstraint(fields=('student',), name='unique_project_enrollment_per_student'),
+            model_name="projectenrollment",
+            constraint=models.UniqueConstraint(
+                fields=("student",), name="unique_project_enrollment_per_student"
+            ),
         ),
     ]

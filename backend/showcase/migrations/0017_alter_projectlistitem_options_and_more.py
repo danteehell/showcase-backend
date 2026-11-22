@@ -6,21 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('showcase', '0016_alter_project_specialties'),
+        ("showcase", "0016_alter_project_specialties"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='projectlistitem',
-            options={'verbose_name': 'Дополнительная информация о проекте', 'verbose_name_plural': 'Дополнительная информация о проектах'},
+            name="projectlistitem",
+            options={
+                "verbose_name": "Дополнительная информация о проекте",
+                "verbose_name_plural": "Дополнительная информация о проектах",
+            },
         ),
         migrations.RemoveField(
-            model_name='projectlistitem',
-            name='position',
+            model_name="projectlistitem",
+            name="position",
         ),
         migrations.AlterField(
-            model_name='projectlistitem',
-            name='type',
-            field=models.CharField(choices=[('tasks', 'Основные задачи'), ('technologies', 'Технологии')], max_length=50, verbose_name='Тип элемента'),
+            model_name="projectlistitem",
+            name="type",
+            field=models.CharField(
+                choices=[("tasks", "Основные задачи"), ("technologies", "Технологии")],
+                max_length=50,
+                verbose_name="Тип элемента",
+            ),
         ),
     ]
