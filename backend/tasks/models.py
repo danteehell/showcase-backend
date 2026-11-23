@@ -93,7 +93,7 @@ class Task(models.Model):
         verbose_name="Сложность",
     )
 
-    points = models.DecimalField(max_digits=6, decimal_places=2, verbose_name="Баллы")
+    points = models.PositiveIntegerField(default=0, verbose_name="Баллы")
     start_date = models.DateTimeField(
         blank=True, null=True, verbose_name="Начало работы"
     )
