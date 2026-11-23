@@ -249,7 +249,7 @@ class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
         return "Не записан"
 
 
-class RoleProxyAdmin(NoActionsAdminMixin, CustomUserAdmin):
+class RoleProxyAdmin(CustomUserAdmin):
     role_value = None
     role_inlines = ()
 
