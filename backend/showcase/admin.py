@@ -166,11 +166,13 @@ class ProjectApplicationActionForm(ActionForm):
 
 @admin.register(FilterCategory)
 class FilterCategoryAdmin(ModelAdmin):
-    list_display = ("name", "options_count")
+    list_display = ("name", "options_count", "is_active")
+    list_filter = ("is_active",)
     search_fields = ("name",)
     ordering = ("name",)
     inlines = (FilterOptionInline,)
     list_per_page = 30
+    actions = ("activate_categories", "deactivate_categories")
 
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(
@@ -181,17 +183,53 @@ class FilterCategoryAdmin(ModelAdmin):
     def options_count(self, obj):
         return obj._options_count
 
+    @admin.action(description="Включить выбранные категории")
+    def activate_categories(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(
+            request,
+            f"Включено категорий: {updated}.",
+            level=messages.SUCCESS,
+        )
+
+    @admin.action(description="Отключить выбранные категории")
+    def deactivate_categories(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(
+            request,
+            f"Отключено категорий: {updated}.",
+            level=messages.SUCCESS,
+        )
+
 
 @admin.register(FilterOption)
 class FilterOptionAdmin(ModelAdmin):
-    list_display = ("name", "category")
-    list_filter = ("category",)
+    list_display = ("name", "category", "is_active")
+    list_filter = ("category", "is_active")
     search_fields = ("name", "category__name")
     autocomplete_fields = ("category",)
     list_select_related = ("category",)
     ordering = ("category__name", "name")
     list_per_page = 50
+    actions = ("activate_options", "deactivate_options")
 
+    @admin.action(description="Включить выбранные опции")
+    def activate_options(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(
+            request,
+            f"Включено опций: {updated}.",
+            level=messages.SUCCESS,
+        )
+
+    @admin.action(description="Отключить выбранные опции")
+    def deactivate_options(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(
+            request,
+            f"Отключено опций: {updated}.",
+            level=messages.SUCCESS,
+        )
 
 @admin.register(ProjectApplication)
 class ProjectApplicationAdmin(ModelAdmin):

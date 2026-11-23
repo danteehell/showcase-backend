@@ -12,7 +12,10 @@ class FilterCategory(models.Model):
         unique=True,
         verbose_name="Название категории",
     )
-
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Активна",
+    )
     class Meta:
         verbose_name = "Категория фильтра"
         verbose_name_plural = "Категории фильтров"
@@ -32,7 +35,10 @@ class FilterOption(models.Model):
         max_length=200,
         verbose_name="Опция фильтра",
     )
-
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Активна",
+    )
     class Meta:
         verbose_name = "Опция фильтра"
         verbose_name_plural = "Опции фильтров"
