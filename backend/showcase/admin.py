@@ -1,13 +1,10 @@
 import logging
 
-from django import forms
 from django.contrib import admin, messages
-from django.contrib.admin.helpers import ActionForm
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Count, Prefetch
 from django.urls import reverse
-from django.utils import timezone
 from django.utils.html import format_html
 from unfold.admin import ModelAdmin, TabularInline
 
@@ -144,35 +141,24 @@ class ProjectEnrollmentInline(TabularInline):
 class FilterOptionInline(TabularInline):
     model = FilterOption
     extra = 0
-    fields = ("name",)
+    fields = ("name", "is_active")
     show_change_link = True
     verbose_name = "Опция"
     verbose_name_plural = "Опции категории"
 
 
-class ProjectApplicationActionForm(ActionForm):
-    rejection_reason_choice = forms.ChoiceField(
-        label="Причина отклонения",
-        choices=[("", "Выберите причину")]
-        + list(ProjectApplication.RejectionReason.choices),
-        required=False,
-    )
-    rejection_reason_text = forms.CharField(
-        label="Комментарий к отклонению",
-        required=False,
-        widget=forms.TextInput(attrs={"size": 50}),
-    )
 
 
 @admin.register(FilterCategory)
 class FilterCategoryAdmin(ModelAdmin):
+    actions = None
     list_display = ("name", "options_count", "is_active")
+    list_editable = ("is_active",)
     list_filter = ("is_active",)
     search_fields = ("name",)
     ordering = ("name",)
     inlines = (FilterOptionInline,)
     list_per_page = 30
-    actions = ("activate_categories", "deactivate_categories")
 
     def get_queryset(self, request):
         return super().get_queryset(request).annotate(
@@ -183,62 +169,26 @@ class FilterCategoryAdmin(ModelAdmin):
     def options_count(self, obj):
         return obj._options_count
 
-    @admin.action(description="Включить выбранные категории")
-    def activate_categories(self, request, queryset):
-        updated = queryset.update(is_active=True)
-        self.message_user(
-            request,
-            f"Включено категорий: {updated}.",
-            level=messages.SUCCESS,
-        )
 
-    @admin.action(description="Отключить выбранные категории")
-    def deactivate_categories(self, request, queryset):
-        updated = queryset.update(is_active=False)
-        self.message_user(
-            request,
-            f"Отключено категорий: {updated}.",
-            level=messages.SUCCESS,
-        )
 
 
 @admin.register(FilterOption)
 class FilterOptionAdmin(ModelAdmin):
+    actions = None
     list_display = ("name", "category", "is_active")
+    list_editable = ("is_active",)
     list_filter = ("category", "is_active")
     search_fields = ("name", "category__name")
     autocomplete_fields = ("category",)
     list_select_related = ("category",)
     ordering = ("category__name", "name")
     list_per_page = 50
-    actions = ("activate_options", "deactivate_options")
 
-    @admin.action(description="Включить выбранные опции")
-    def activate_options(self, request, queryset):
-        updated = queryset.update(is_active=True)
-        self.message_user(
-            request,
-            f"Включено опций: {updated}.",
-            level=messages.SUCCESS,
-        )
 
-    @admin.action(description="Отключить выбранные опции")
-    def deactivate_options(self, request, queryset):
-        updated = queryset.update(is_active=False)
-        self.message_user(
-            request,
-            f"Отключено опций: {updated}.",
-            level=messages.SUCCESS,
-        )
 
 @admin.register(ProjectApplication)
 class ProjectApplicationAdmin(ModelAdmin):
-    action_form = ProjectApplicationActionForm
-    actions = (
-        "approve_applications",
-        "reject_applications",
-        "return_rejected_to_review",
-    )
+    actions = None
     list_display = (
         "id",
         "title",
@@ -362,205 +312,8 @@ class ProjectApplicationAdmin(ModelAdmin):
             obj.get_status_display(),
         )
 
-    @admin.action(description="Одобрить выбранные заявки и создать проекты")
-    def approve_applications(self, request, queryset):
-        approved = 0
-        skipped = 0
-        failed = 0
 
-        application_ids = list(queryset.values_list("pk", flat=True))
 
-        for application_id in application_ids:
-            try:
-                with transaction.atomic():
-                    application = ProjectApplication.objects.select_for_update().get(
-                        pk=application_id
-                    )
-
-                    if application.status != ProjectApplication.Status.PENDING:
-                        skipped += 1
-                        continue
-
-                    create_project_from_application(application)
-                    application.status = ProjectApplication.Status.APPROVED
-                    application.rejection_reason_choice = None
-                    application.rejection_reason_text = None
-                    application.save(
-                        update_fields=[
-                            "status",
-                            "rejection_reason_choice",
-                            "rejection_reason_text",
-                            "updated_at",
-                        ]
-                    )
-
-                approved += 1
-            except ProjectApplication.DoesNotExist:
-                skipped += 1
-            except Exception:
-                failed += 1
-                logger.exception(
-                    "Не удалось одобрить заявку из Django Admin: application_id=%s",
-                    application_id,
-                )
-
-        if approved:
-            self.message_user(
-                request,
-                f"Одобрено заявок: {approved}. Создано проектов: {approved}.",
-                level=messages.SUCCESS,
-            )
-
-        if skipped:
-            self.message_user(
-                request,
-                f"Пропущено заявок (уже обработаны или удалены): {skipped}.",
-                level=messages.WARNING,
-            )
-
-        if failed:
-            self.message_user(
-                request,
-                f"Не удалось обработать заявок: {failed}. Подробности записаны в журнал.",
-                level=messages.ERROR,
-            )
-
-    @admin.action(description="Отклонить выбранные заявки с указанной причиной")
-    def reject_applications(self, request, queryset):
-        reason_choice = request.POST.get("rejection_reason_choice")
-        reason_text = request.POST.get("rejection_reason_text", "").strip()
-
-        if reason_choice not in ProjectApplication.RejectionReason.values:
-            self.message_user(
-                request,
-                "Перед отклонением выберите причину в поле «Причина отклонения» над списком.",
-                level=messages.ERROR,
-            )
-            return
-
-        if (
-            reason_choice == ProjectApplication.RejectionReason.OTHER
-            and not reason_text
-        ):
-            self.message_user(
-                request,
-                "Для причины «Другая» необходимо заполнить комментарий.",
-                level=messages.ERROR,
-            )
-            return
-
-        rejected = 0
-        skipped = 0
-        failed = 0
-        application_ids = list(queryset.values_list("pk", flat=True))
-
-        for application_id in application_ids:
-            try:
-                with transaction.atomic():
-                    application = ProjectApplication.objects.select_for_update().get(
-                        pk=application_id
-                    )
-
-                    if application.status != ProjectApplication.Status.PENDING:
-                        skipped += 1
-                        continue
-
-                    application.status = ProjectApplication.Status.REJECTED
-                    application.rejection_reason_choice = reason_choice
-                    application.rejection_reason_text = reason_text or None
-                    application.full_clean()
-                    application.save(
-                        update_fields=[
-                            "status",
-                            "rejection_reason_choice",
-                            "rejection_reason_text",
-                            "updated_at",
-                        ]
-                    )
-
-                rejected += 1
-            except ProjectApplication.DoesNotExist:
-                skipped += 1
-            except ValidationError:
-                failed += 1
-                logger.exception(
-                    "Ошибка валидации при отклонении заявки: application_id=%s",
-                    application_id,
-                )
-            except Exception:
-                failed += 1
-                logger.exception(
-                    "Не удалось отклонить заявку из Django Admin: application_id=%s",
-                    application_id,
-                )
-
-        if rejected:
-            self.message_user(
-                request,
-                f"Отклонено заявок: {rejected}.",
-                level=messages.SUCCESS,
-            )
-
-        if skipped:
-            self.message_user(
-                request,
-                f"Пропущено заявок (уже обработаны или удалены): {skipped}.",
-                level=messages.WARNING,
-            )
-
-        if failed:
-            self.message_user(
-                request,
-                f"Не удалось отклонить заявок: {failed}. Подробности записаны в журнал.",
-                level=messages.ERROR,
-            )
-
-    @admin.action(description="Вернуть отклонённые заявки на рассмотрение")
-    def return_rejected_to_review(self, request, queryset):
-        returned = 0
-        skipped = 0
-        application_ids = list(queryset.values_list("pk", flat=True))
-
-        for application_id in application_ids:
-            with transaction.atomic():
-                try:
-                    application = ProjectApplication.objects.select_for_update().get(
-                        pk=application_id
-                    )
-                except ProjectApplication.DoesNotExist:
-                    skipped += 1
-                    continue
-
-                if application.status != ProjectApplication.Status.REJECTED:
-                    skipped += 1
-                    continue
-
-                application.status = ProjectApplication.Status.PENDING
-                application.rejection_reason_choice = None
-                application.rejection_reason_text = None
-                application.save(
-                    update_fields=[
-                        "status",
-                        "rejection_reason_choice",
-                        "rejection_reason_text",
-                        "updated_at",
-                    ]
-                )
-                returned += 1
-
-        if returned:
-            self.message_user(
-                request,
-                f"Возвращено на рассмотрение заявок: {returned}.",
-                level=messages.SUCCESS,
-            )
-
-        if skipped:
-            self.message_user(
-                request,
-                f"Пропущено заявок: {skipped}. Одобренные заявки этим действием не изменяются.",
-                level=messages.WARNING,
-            )
 
     def has_delete_permission(self, request, obj=None):
         if obj and obj.status == ProjectApplication.Status.APPROVED:
@@ -581,6 +334,7 @@ class ProjectApplicationAdmin(ModelAdmin):
 
 @admin.register(Project)
 class ProjectAdmin(ModelAdmin):
+    actions = None
     list_display = (
         "id",
         "title",
@@ -594,6 +348,7 @@ class ProjectAdmin(ModelAdmin):
         "updated_at",
     )
     list_display_links = ("title",)
+    list_editable = ("internship", "is_active")
     list_filter = (
         "is_active",
         "internship",
@@ -643,7 +398,6 @@ class ProjectAdmin(ModelAdmin):
         "enrollment_summary",
     )
     save_on_top = True
-    actions = ("activate_projects", "deactivate_projects")
 
     fieldsets = (
         (
@@ -742,33 +496,12 @@ class ProjectAdmin(ModelAdmin):
             return "Пока никто не записался"
         return f"Записано студентов: {count}"
 
-    @admin.action(description="Опубликовать выбранные проекты")
-    def activate_projects(self, request, queryset):
-        updated = queryset.exclude(is_active=True).update(
-            is_active=True,
-            updated_at=timezone.now(),
-        )
-        self.message_user(
-            request,
-            f"Опубликовано проектов: {updated}.",
-            level=messages.SUCCESS,
-        )
 
-    @admin.action(description="Скрыть выбранные проекты")
-    def deactivate_projects(self, request, queryset):
-        updated = queryset.exclude(is_active=False).update(
-            is_active=False,
-            updated_at=timezone.now(),
-        )
-        self.message_user(
-            request,
-            f"Скрыто проектов: {updated}.",
-            level=messages.SUCCESS,
-        )
 
 
 @admin.register(ProjectEnrollment)
 class ProjectEnrollmentAdmin(ModelAdmin):
+    actions = None
     list_display = (
         "student_link",
         "student_email",

@@ -1,12 +1,15 @@
-from django.contrib import admin, messages
-from django.utils import timezone
+from django.contrib import admin
 from unfold.admin import ModelAdmin, TabularInline
 
 from .models import Task, TaskAssignment, TaskCategory, TaskSkill
 
 
+class NoActionsAdminMixin:
+    actions = None
+
+
 @admin.register(TaskCategory)
-class TaskCategoryAdmin(ModelAdmin):
+class TaskCategoryAdmin(NoActionsAdminMixin, ModelAdmin):
     list_display = ("name", "slug", "tasks_count")
     search_fields = ("name", "slug")
     list_display_links = ("name",)
@@ -40,7 +43,7 @@ class AssignmentInline(TabularInline):
 
 
 @admin.register(Task)
-class TaskAdmin(ModelAdmin):
+class TaskAdmin(NoActionsAdminMixin, ModelAdmin):
     list_display = (
         "id",
         "title",
@@ -143,45 +146,13 @@ class TaskAdmin(ModelAdmin):
         ),
     )
 
-    actions = ("action_publish", "action_withdraw", "action_expire")
-
     @admin.display(description="Набрано")
     def filled_display(self, obj):
         return f"{obj.filled_people} / {obj.required_people}"
 
-    @admin.action(description="Опубликовать")
-    def action_publish(self, request, queryset):
-        updated = queryset.filter(status=Task.Status.DRAFT).update(
-            status=Task.Status.PUBLISHED,
-            published_at=timezone.now(),
-        )
-        self.message_user(request, f"Опубликовано: {updated}", messages.SUCCESS)
-
-    @admin.action(description="Снять с биржи")
-    def action_withdraw(self, request, queryset):
-        now = timezone.now()
-        updated = queryset.exclude(
-            status__in=[Task.Status.COMPLETED, Task.Status.WITHDRAWN]
-        ).update(
-            status=Task.Status.WITHDRAWN,
-            withdrawn_at=now,
-            removed_at=now,
-            removal_reason=Task.RemovalReason.OTHER,
-            removal_comment="Снято из админки",
-        )
-        self.message_user(request, f"Снято: {updated}", messages.SUCCESS)
-
-    @admin.action(description="Пометить как истёкшие")
-    def action_expire(self, request, queryset):
-        updated = queryset.filter(status=Task.Status.PUBLISHED).update(
-            status=Task.Status.EXPIRED,
-            expired_at=timezone.now(),
-        )
-        self.message_user(request, f"Помечено: {updated}", messages.SUCCESS)
-
 
 @admin.register(TaskSkill)
-class TaskSkillAdmin(ModelAdmin):
+class TaskSkillAdmin(NoActionsAdminMixin, ModelAdmin):
     list_display = ("id", "task", "skill", "level_required")
     list_filter = ("level_required",)
     search_fields = ("skill", "task__title")
@@ -190,7 +161,7 @@ class TaskSkillAdmin(ModelAdmin):
 
 
 @admin.register(TaskAssignment)
-class TaskAssignmentAdmin(ModelAdmin):
+class TaskAssignmentAdmin(NoActionsAdminMixin, ModelAdmin):
     list_display = (
         "id",
         "task",
@@ -245,38 +216,6 @@ class TaskAssignmentAdmin(ModelAdmin):
         ),
     )
 
-    actions = ("action_accept", "action_return")
-
     @admin.display(description="Осталось возвратов")
     def revisions_left_display(self, obj):
         return max(3 - obj.revision_count, 0)
-
-    @admin.action(description="Принять работу")
-    def action_accept(self, request, queryset):
-        updated = queryset.filter(status=TaskAssignment.Status.SUBMITTED).update(
-            status=TaskAssignment.Status.COMPLETED,
-            completed_at=timezone.now(),
-        )
-        skipped = queryset.count() - updated
-        msg = f"Принято: {updated}"
-        if skipped:
-            msg += f", пропущено (не на проверке): {skipped}"
-        self.message_user(request, msg, messages.SUCCESS)
-
-    @admin.action(description="Вернуть на доработку")
-    def action_return(self, request, queryset):
-        qs = queryset.filter(
-            status=TaskAssignment.Status.SUBMITTED,
-            revision_count__lt=3,
-        )
-        count = 0
-        for a in qs:
-            a.status = TaskAssignment.Status.RETURNED
-            a.revision_count = a.revision_count + 1
-            a.save(update_fields=["status", "revision_count"])
-            count += 1
-        skipped = queryset.count() - count
-        msg = f"Возвращено: {count}"
-        if skipped:
-            msg += f", пропущено (не submitted или лимит 3): {skipped}"
-        self.message_user(request, msg, messages.SUCCESS)

@@ -1,4 +1,3 @@
-
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
@@ -10,6 +9,7 @@ from .models import (
     CuratorProxy,
     DeanProxy,
     Department,
+    DirectionHeadProxy,
     Faculty,
     Group,
     Partner,
@@ -19,20 +19,11 @@ from .models import (
     StudentProfile,
     StudentProxy,
     User,
-    DirectionHeadProxy,
 )
 
 
-class CustomUserCreationForm(UserCreationForm):
-    class Meta(UserCreationForm.Meta):
-        model = User
-        fields = ("email", "role")
-
-
-class CustomUserChangeForm(UserChangeForm):
-    class Meta(UserChangeForm.Meta):
-        model = User
-        fields = "__all__"
+class NoActionsAdminMixin:
+    actions = None
 
 
 class StudentProfileInline(StackedInline):
@@ -64,8 +55,20 @@ class PartnerRepresentativeInline(StackedInline):
     fields = ("partner",)
 
 
+class CustomUserCreationForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = User
+        fields = ("email", "role")
+
+
+class CustomUserChangeForm(UserChangeForm):
+    class Meta(UserChangeForm.Meta):
+        model = User
+        fields = "__all__"
+
+
 @admin.register(Specialty)
-class SpecialtyAdmin(ModelAdmin):
+class SpecialtyAdmin(NoActionsAdminMixin, ModelAdmin):
     list_display = ("code", "name", "faculty", "head")
     list_filter = ("faculty", "head")
     search_fields = (
@@ -80,7 +83,7 @@ class SpecialtyAdmin(ModelAdmin):
 
 
 @admin.register(Faculty)
-class FacultyAdmin(ModelAdmin):
+class FacultyAdmin(NoActionsAdminMixin, ModelAdmin):
     list_display = ("name", "dean")
     search_fields = (
         "name",
@@ -93,14 +96,14 @@ class FacultyAdmin(ModelAdmin):
 
 
 @admin.register(Department)
-class DepartmentAdmin(ModelAdmin):
+class DepartmentAdmin(NoActionsAdminMixin, ModelAdmin):
     list_display = ("name",)
     search_fields = ("name",)
     ordering = ("name",)
 
 
 @admin.register(Group)
-class GroupAdmin(ModelAdmin):
+class GroupAdmin(NoActionsAdminMixin, ModelAdmin):
     list_display = ("name", "specialty", "year")
     list_filter = ("year", "specialty__faculty")
     search_fields = (
@@ -113,8 +116,17 @@ class GroupAdmin(ModelAdmin):
 
 
 @admin.register(Partner)
-class PartnerModelAdmin(ModelAdmin):
-    list_display = ("name", "short_name", "email", "phone", "internship")
+class PartnerModelAdmin(NoActionsAdminMixin, ModelAdmin):
+    list_display = (
+        "name",
+        "short_name",
+        "email",
+        "phone",
+        "internship",
+        "is_curator_contact",
+    )
+    list_display_links = ("name",)
+    list_editable = ("internship", "is_curator_contact")
     list_filter = ("internship", "is_curator_contact")
     search_fields = (
         "name",
@@ -126,7 +138,7 @@ class PartnerModelAdmin(ModelAdmin):
 
 
 @admin.register(PartnerRepresentative)
-class PartnerRepresentativeAdmin(ModelAdmin):
+class PartnerRepresentativeAdmin(NoActionsAdminMixin, ModelAdmin):
     list_display = ("user", "partner")
     list_filter = ("partner",)
     search_fields = (
@@ -139,7 +151,7 @@ class PartnerRepresentativeAdmin(ModelAdmin):
 
 
 @admin.register(User)
-class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
+class CustomUserAdmin(NoActionsAdminMixin, BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
 
@@ -150,6 +162,8 @@ class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
         "enrolled_project",
         "is_active",
     )
+    list_display_links = ("email",)
+    list_editable = ("is_active",)
     list_filter = ("role", "is_staff", "is_superuser", "is_active")
     search_fields = (
         "email",
@@ -235,7 +249,7 @@ class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
         return "Не записан"
 
 
-class RoleProxyAdmin(CustomUserAdmin):
+class RoleProxyAdmin(NoActionsAdminMixin, CustomUserAdmin):
     role_value = None
     role_inlines = ()
 
@@ -284,6 +298,8 @@ class StudentAdmin(RoleProxyAdmin):
         "display_specialty",
         "is_active",
     )
+    list_display_links = ("email",)
+    list_editable = ("is_active",)
     list_filter = (
         "student_profile__course",
         "student_profile__specialty",
@@ -337,6 +353,8 @@ class CuratorAdmin(RoleProxyAdmin):
         "display_department",
         "is_active",
     )
+    list_display_links = ("email",)
+    list_editable = ("is_active",)
     list_filter = ("curator_profile__department", "is_active")
 
     def get_queryset(self, request):
@@ -363,6 +381,8 @@ class AdminRoleAdmin(RoleProxyAdmin):
         "display_full_name",
         "is_active",
     )
+    list_display_links = ("email",)
+    list_editable = ("is_active",)
     list_filter = ("is_active",)
 
 
@@ -376,6 +396,8 @@ class DirectionHeadAdmin(RoleProxyAdmin):
         "display_specialties",
         "is_active",
     )
+    list_display_links = ("email",)
+    list_editable = ("is_active",)
     list_filter = ("is_active",)
 
     def get_queryset(self, request):
@@ -402,6 +424,8 @@ class DeanAdmin(RoleProxyAdmin):
         "display_faculties",
         "is_active",
     )
+    list_display_links = ("email",)
+    list_editable = ("is_active",)
     list_filter = ("is_active",)
 
     def get_queryset(self, request):
@@ -429,6 +453,8 @@ class PartnerUserAdmin(RoleProxyAdmin):
         "display_partners",
         "is_active",
     )
+    list_display_links = ("email",)
+    list_editable = ("is_active",)
     list_filter = ("is_active",)
 
     def get_queryset(self, request):
