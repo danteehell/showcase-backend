@@ -151,7 +151,7 @@ class PartnerRepresentativeAdmin(NoActionsAdminMixin, ModelAdmin):
 
 
 @admin.register(User)
-class CustomUserAdmin(NoActionsAdminMixin, BaseUserAdmin, ModelAdmin):
+class CustomUserAdmin(BaseUserAdmin, ModelAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
 
